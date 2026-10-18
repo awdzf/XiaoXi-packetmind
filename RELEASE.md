@@ -25,7 +25,7 @@ dist/
 
 `tools/build_release.py` 会在 `dist/` 下生成一个**干净副本**并打包。发布包：
 
-- 不含 `.dsh/`、`dist/`、`__pycache__/`、`*.pyc`；
+- 不含本地运行缓存、`dist/`、`__pycache__/`、`*.pyc`；
 - 不含 `experts/data/`（漏问日志）；
 - 记忆包 `entries` 会被清空，不带走任何用户教的知识；
 - 生成 `MANIFEST.sha256`，并打印 zip 的 SHA-256。
@@ -55,7 +55,7 @@ python tools/build_release.py
 
 ### GitHub Release
 
-1. 建仓库，推源码（不要推 `dist/`、`.dsh/`、`experts/data/`）；
+1. 建仓库，推源码（不要推 `dist/`、本地运行缓存、`experts/data/`）；
 2. 打 tag：`v1.0.0`；
 3. 在 Release 里上传 `dist/xiaoxi-1.0.0.zip`；
 4. Release notes 直接摘 `CHANGELOG.md` 的 1.0.0 段；
@@ -75,7 +75,7 @@ python tools/build_release.py
 - [ ] `python experts/pack.py check` 全绿（当前 8 个包）；
 - [ ] `python experts/eval.py` 指标没有明显回退（当前 21/21、21/21、MRR 1.000、负例 5/5）；
 - [ ] `experts/packs/memory/pack.json` 的 `entries` 为空；
-- [ ] 没有 `experts/data/`、没有 `.dsh/`、没有 API key/个人路径；
+- [ ] 没有 `experts/data/`、没有本地运行缓存、没有 API key/个人路径；
 - [ ] `LICENSE` 与 `CITATION.cff` 的作者/年份符合你的意愿；
 - [ ] 如果换了许可证，同步改 `CITATION.cff` 的 `license`。
 
