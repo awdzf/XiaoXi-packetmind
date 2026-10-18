@@ -1,0 +1,24 @@
+{
+  "_readme": ["测试用数据包:食物。它包含 fruit(contains),于是也间接包含 apple。"],
+  "expert": {
+    "id": "food",
+    "name": "食物",
+    "tagline": "测试用:食物这一块知识",
+    "scope": ["食物", "可以吃"],
+    "contains": ["fruit"],
+    "limits": ["测试用"],
+    "siblings": []
+  },
+  "entries": [
+    {
+      "id": "food-what",
+      "question": "食物是什么?",
+      "aliases": ["食物是啥"],
+      "keywords": ["食物", "可以吃", "营养", "可食用"],
+      "answer": "食物是能被身体消化吸收、提供营养的东西。",
+      "points": ["食物提供能量与营养。"],
+      "see_also": []
+    }
+  ],
+  "safety": { "refuse": [], "caution": [] }
+}

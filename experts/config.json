@@ -1,0 +1,48 @@
+{
+  "_readme": [
+    "小析的可调开关。改完重启 GoChat 生效;命令行 --max-packs / --rehit 可临时覆盖。",
+    "max_packs: 一次最多查几个数据包(1–8,默认 3)。调大 = 一次覆盖更多方向;调小 = 更快、更聚焦。",
+    "           注意:上限只截断,不降低命中阈值 —— 精确性由阈值(≥3 分)守着。",
+    "rehit_rounds: 再命中轮数(0–3,默认 1)。命中一个包后,用它条目里的关键词反向去查还没查过的包;",
+    "           如果命中了'包含已命中包'的父包,回答会说明'既有子包的性质,也有父包的性质'。",
+    "           0 = 关闭再命中;轮数越多走得越远,也越容易把不相干的包带进来。",
+    "context:   上下文记忆:记住上一轮拆出来的非常用词,接着问的时候再用一次。",
+    "           enabled=false 可以整个关掉;max_turns / max_keywords 是记忆的有界大小。",
+    "retrieval: 检索层开关:bm25(倒排 BM25)/ hybrid(混合兜底)/ query_expansion(扩展词数 0–10)",
+    "           / hierarchy(按笔记标题分层)/ abstain_confidence(校准弃权阈值 0–1)",
+    "           / max_entries(一次最多并入几条,默认 6)/ text_budget(答案正文最多字符,0=不限)。",
+    "           条目可在 pack.json 里写 priority(数字大先选)/ group(同组只取一条)。",
+    "trust:     条目信任与冲突优先级:author_entries_high(作者包条目默认高置信,默认 true)",
+    "           / high_confidence、low_confidence(显式「包/条目」,可用 :trust 改)",
+    "           / conflict_priority(默认 author > memory)/ conflict_policy(prefer / strict)。",
+    "datalog:   pack.json 可选段:facts/rules 的 Prolog 式子集(?变量、递归、not);由有界规划器解释。"
+  ],
+  "max_packs": 3,
+  "rehit_rounds": 1,
+  "context": {
+    "enabled": true,
+    "max_turns": 8,
+    "max_keywords": 12
+  },
+  "retrieval": {
+    "bm25": true,
+    "k1": 1.5,
+    "b": 0.75,
+    "hybrid": true,
+    "query_expansion": 4,
+    "hierarchy": true,
+    "abstain_confidence": 0.35,
+    "max_entries": 6,
+    "text_budget": 2400
+  },
+  "trust": {
+    "author_entries_high": true,
+    "high_confidence": [],
+    "low_confidence": [],
+    "conflict_priority": [
+      "author",
+      "memory"
+    ],
+    "conflict_policy": "prefer"
+  }
+}

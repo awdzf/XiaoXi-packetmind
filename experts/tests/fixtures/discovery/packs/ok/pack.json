@@ -1,0 +1,24 @@
+{
+  "expert": {
+    "id": "ok",
+    "name": "正常数据包",
+    "tagline": "只用于发现逻辑的测试",
+    "scope": ["ok"],
+    "siblings": [],
+    "limits": ["测试用"]
+  },
+  "entries": [
+    {
+      "id": "e1",
+      "question": "ok是什么?",
+      "aliases": ["ok是啥"],
+      "keywords": ["ok"],
+      "answer": "这是一条只在测试里出现的条目。",
+      "points": ["用于验证发现逻辑"]
+    }
+  ],
+  "safety": {
+    "refuse": [],
+    "caution": []
+  }
+}

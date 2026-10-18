@@ -1,0 +1,908 @@
+{
+  "expert": {
+    "id": "java",
+    "name": "Java",
+    "tagline": "只答 Java 语言、JVM、集合、并发、Spring、Maven 的基础概念;不写项目、不跑代码、不联网。",
+    "scope": [
+      "java",
+      "jvm",
+      "jdk",
+      "jre",
+      "字节码",
+      "面向对象",
+      "封装",
+      "多态",
+      "类加载",
+      "抽象类",
+      "接口",
+      "重载",
+      "重写",
+      "stringbuilder",
+      "stringbuffer",
+      "hashmap",
+      "arraylist",
+      "集合",
+      "泛型",
+      "异常",
+      "线程",
+      "线程池",
+      "垃圾回收",
+      "gc",
+      "spring",
+      "spring boot",
+      "maven",
+      "gradle",
+      "pom",
+      "包装类",
+      "装箱",
+      "拆箱",
+      "final",
+      "static",
+      "lts",
+      "record",
+      "lambda",
+      "stream",
+      "junit",
+      "mybatis",
+      "jdbc",
+      "synchronized",
+      "volatile",
+      "concurrenthashmap",
+      "jdk8",
+      "jdk17",
+      "jdk21"
+    ],
+    "siblings": [
+      {
+        "id": "web_dev",
+        "name": "网页开发与设计",
+        "folder": "web_dev",
+        "examples": [
+          "HTML是什么?",
+          "CSS是什么?"
+        ]
+      },
+      {
+        "id": "math",
+        "name": "数学",
+        "folder": "math",
+        "examples": [
+          "数学是什么?",
+          "自然数、整数、有理数、实数和复数有什么区别?"
+        ]
+      },
+      {
+        "id": "physics",
+        "name": "物理",
+        "folder": "physics",
+        "examples": [
+          "物理学是什么?",
+          "牛顿三大定律是什么?"
+        ]
+      },
+      {
+        "id": "emotion",
+        "name": "情感与心理",
+        "folder": "emotion",
+        "examples": [
+          "心理学是什么?",
+          "情绪是什么?"
+        ]
+      },
+      {
+        "id": "ethics",
+        "name": "道德伦理",
+        "folder": "ethics",
+        "examples": [
+          "道德伦理是什么?",
+          "伦理学有哪些主要流派?"
+        ]
+      }
+    ],
+    "limits": [
+      "不写项目、不生成完整代码、不跑 javac/mvn/test",
+      "不联网:不查最新版本文档与支持截止日期",
+      "不代替人做架构决策与代码评审",
+      "只答基础概念:具体报错排查与性能调优请给出现场信息"
+    ]
+  },
+  "entries": [
+    {
+      "id": "java-what",
+      "question": "Java 是什么?",
+      "aliases": [
+        "java是什么",
+        "什么是java",
+        "java是啥",
+        "java语言",
+        "介绍java",
+        "解释一下java"
+      ],
+      "keywords": [
+        "java",
+        "面向对象",
+        "字节码"
+      ],
+      "answer": "Java 是一门面向对象的编程语言,1995 年由 Sun(现 Oracle)发布。它的标志性特点是「一次编写,到处运行」:源码先编译成字节码(.class),再由 JVM 在不同平台上执行。Java 广泛用于后端服务、Android 应用、大数据组件与企业系统。它和 JavaScript 没有关系,名字相似只是历史原因。",
+      "points": [
+        "源码 .java 经 javac 变成字节码 .class,再由 JVM 执行。",
+        "Java 是静态类型、强类型、面向对象的语言。",
+        "跨平台来自 JVM 这层抽象,不是源码本身能在任何机器上跑。"
+      ],
+      "see_also": [
+        "jvm",
+        "jdk-jre",
+        "bytecode"
+      ]
+    },
+    {
+      "id": "jvm",
+      "question": "JVM 是什么?",
+      "aliases": [
+        "jvm是什么",
+        "什么是jvm",
+        "java虚拟机",
+        "jvm有什么用"
+      ],
+      "keywords": [
+        "jvm",
+        "虚拟机",
+        "字节码",
+        "jit"
+      ],
+      "answer": "JVM(Java Virtual Machine,Java 虚拟机)是执行 Java 字节码的运行时:它负责加载类、管理内存(堆、栈、方法区等)、执行字节码,并通过 JIT 把热点代码编译成本地机器码。正因为有 JVM 这层抽象,同一份字节码可以在 Windows、Linux、macOS 上运行。JVM 不是 Java 语言专属,Kotlin、Scala、Groovy 也编译到它上面。",
+      "points": [
+        "JVM 管内存与 GC,是「自动内存管理」的落点。",
+        "JIT 让热点代码接近本地编译的性能。",
+        "「一次编写到处运行」靠的是 JVM,不是源码。"
+      ],
+      "see_also": [
+        "jdk-jre",
+        "gc",
+        "bytecode"
+      ]
+    },
+    {
+      "id": "jdk-jre",
+      "question": "JDK、JRE 和 JVM 有什么区别?",
+      "aliases": [
+        "jdk和jre的区别",
+        "jdk和jvm的区别",
+        "jre是什么",
+        "jdk是什么",
+        "jdk和jre"
+      ],
+      "keywords": [
+        "jdk",
+        "jre",
+        "jvm"
+      ],
+      "answer": "JVM 是执行字节码的虚拟机;JRE 是 JVM 加运行所需的核心类库,只能运行程序;JDK 是 JRE 加编译器(javac)、调试与打包等开发工具,能开发也能运行。日常说「装 Java」通常指装 JDK;只部署运行环境时 JRE 够用,但新版 Java 已不再单独提供 JRE 发行包,一般直接装 JDK。",
+      "points": [
+        "包含关系:JDK 包含 JRE,JRE 包含 JVM(概念上)。",
+        "编译需要 javac,它在 JDK 里。",
+        "「装哪个版本」要看项目要求,不是越新越好。"
+      ],
+      "see_also": [
+        "jvm",
+        "compile-run",
+        "bytecode"
+      ]
+    },
+    {
+      "id": "bytecode",
+      "question": "Java 字节码是什么?",
+      "aliases": [
+        "字节码是什么",
+        "什么是字节码",
+        "class文件是什么"
+      ],
+      "keywords": [
+        "字节码",
+        "bytecode",
+        "class文件"
+      ],
+      "answer": "字节码是 javac 把 .java 源码编译出来的中间指令(.class 文件),它面向 JVM 而不是某一种 CPU。JVM 加载字节码后逐条解释执行,并把热点方法交给 JIT 编译成本地机器码。字节码的存在让同一份程序能跨平台运行,也让 JVM 上的语言可以互相调用。",
+      "points": [
+        "字节码是「面向虚拟机的指令集」,不是机器码。",
+        "javap 可以反汇编 .class,看字节码指令。"
+      ],
+      "see_also": [
+        "jvm",
+        "compile-run",
+        "java-what"
+      ]
+    },
+    {
+      "id": "oop",
+      "question": "Java 面向对象的三大特性是什么?",
+      "aliases": [
+        "面向对象三大特性",
+        "封装继承多态",
+        "什么是封装",
+        "什么是继承",
+        "什么是多态"
+      ],
+      "keywords": [
+        "封装",
+        "继承",
+        "多态",
+        "面向对象"
+      ],
+      "answer": "封装:把数据和操作数据的方法放在类里,只暴露必要接口,隐藏实现细节;继承:子类复用父类的字段与方法,表达「是一种」的关系;多态:同一接口或父类引用指向不同子类对象,运行时调用到各自实现(动态绑定)。三者一起让代码可复用、可替换、可扩展。",
+      "points": [
+        "封装靠访问修饰符(private/protected/public)与接口设计。",
+        "继承是「is-a」,组合是「has-a」,通常优先组合。",
+        "多态在 Java 里靠方法重写 + 父类引用实现。"
+      ],
+      "see_also": [
+        "class-object",
+        "interface-abstract",
+        "overload-override"
+      ]
+    },
+    {
+      "id": "class-object",
+      "question": "类和对象有什么区别?",
+      "aliases": [
+        "类和对象的区别",
+        "什么是类",
+        "什么是对象",
+        "类与对象"
+      ],
+      "keywords": [
+        "类和对象",
+        "实例",
+        "构造方法"
+      ],
+      "answer": "类是模板:定义字段(状态)和方法(行为);对象是类实例化出来的具体个体,占内存、有各自的字段值。例如「学生」是类,「张三」是对象。创建对象用 new,构造方法负责初始化。",
+      "points": [
+        "类只描述「长什么样」,对象才是真正存在的那个。",
+        "构造方法名与类名相同、没有返回类型。"
+      ],
+      "see_also": [
+        "oop",
+        "interface-abstract",
+        "primitives"
+      ]
+    },
+    {
+      "id": "interface-abstract",
+      "question": "接口和抽象类有什么区别?",
+      "aliases": [
+        "接口和抽象类的区别",
+        "抽象类和接口",
+        "什么是接口",
+        "什么是抽象类"
+      ],
+      "keywords": [
+        "接口",
+        "抽象类",
+        "implements",
+        "extends"
+      ],
+      "answer": "抽象类是类,可以有字段、构造方法、普通方法和抽象方法,子类只能继承一个;接口定义一组能力约定,主要放抽象方法(Java 8 起可以有 default/static 方法),一个类可以实现多个接口。选择上:要复用状态与部分实现,用抽象类;要表达「能做什么」并让多个不相关的类共享契约,用接口。",
+      "points": [
+        "一个类只能 extends 一个类,但能 implements 多个接口。",
+        "接口字段默认 public static final。",
+        "default 方法让接口也能带实现,但别拿它当抽象类用。"
+      ],
+      "see_also": [
+        "oop",
+        "overload-override",
+        "java-what"
+      ]
+    },
+    {
+      "id": "overload-override",
+      "question": "重载和重写有什么区别?",
+      "aliases": [
+        "重载和重写的区别",
+        "方法重载",
+        "方法重写",
+        "override和overload"
+      ],
+      "keywords": [
+        "重载",
+        "重写",
+        "overload",
+        "override"
+      ],
+      "answer": "重载(overload)发生在同一个类里:方法名相同、参数列表不同(个数、类型或顺序),返回值不参与区分,编译期就确定调哪个;重写(override)发生在父子类之间:子类重新实现父类的方法,方法签名相同,运行时按实际对象类型动态绑定。重写不能把访问权限改小,也不能抛出更宽的受检异常。",
+      "points": [
+        "重载看参数,重写看签名。",
+        "重写加 @Override 注解,让编译器帮你检查。"
+      ],
+      "see_also": [
+        "oop",
+        "interface-abstract"
+      ]
+    },
+    {
+      "id": "string-types",
+      "question": "String、StringBuilder 和 StringBuffer 有什么区别?",
+      "aliases": [
+        "string和stringbuilder区别",
+        "stringbuilder和stringbuffer区别",
+        "stringbuffer是什么",
+        "stringbuilder是什么"
+      ],
+      "keywords": [
+        "string",
+        "stringbuilder",
+        "stringbuffer",
+        "字符串"
+      ],
+      "answer": "String 不可变:每次拼接都会产生新对象,适合少量、不频繁修改的文本。StringBuilder 可变、非线程安全,单线程下拼接效率最高;StringBuffer 可变且方法加了同步,线程安全但更慢。循环里拼字符串应该用 StringBuilder,而不是用 String 的加号。",
+      "points": [
+        "String 不可变带来线程安全与可缓存(字符串常量池),但频繁修改代价高。",
+        "StringBuilder 默认容量 16,能预估长度就先给容量。",
+        "三者都不是「字符数组」的同义词,编码问题要看 charset。"
+      ],
+      "see_also": [
+        "equals",
+        "primitives"
+      ]
+    },
+    {
+      "id": "equals",
+      "question": "== 和 equals 有什么区别?",
+      "aliases": [
+        "==和equals的区别",
+        "equals和==的区别",
+        "equals是什么",
+        "hashcode和equals"
+      ],
+      "keywords": [
+        "equals",
+        "==",
+        "hashcode",
+        "引用比较"
+      ],
+      "answer": "== 比较的是引用(两个变量是否指向同一个对象;基本类型比较值);equals 是方法,默认实现也是引用比较,但类可以重写它按内容比较 —— String、包装类、集合都重写了。重写 equals 时必须同时重写 hashCode:相等的对象必须有相同的哈希值,否则放进 HashMap/HashSet 会出问题。",
+      "points": [
+        "判断内容相等用 equals,判断是否同一对象用 ==。",
+        "重写 equals 要满足自反、对称、传递、一致,并与 hashCode 保持一致。",
+        "枚举与 record 的相等语义由语言保证,不用手写。"
+      ],
+      "see_also": [
+        "string-types",
+        "hashmap"
+      ]
+    },
+    {
+      "id": "collections",
+      "question": "Java 集合框架里 List、Set、Map 有什么区别?",
+      "aliases": [
+        "list和set的区别",
+        "list和map的区别",
+        "set和map的区别",
+        "集合框架",
+        "arraylist和linkedlist区别"
+      ],
+      "keywords": [
+        "list",
+        "set",
+        "map",
+        "集合",
+        "arraylist",
+        "linkedlist"
+      ],
+      "answer": "List 有序、可重复,按下标访问(ArrayList 查快、LinkedList 中间插删快);Set 不重复,HashSet 用哈希去重、TreeSet 有序;Map 存键值对,键不重复,HashMap 查改快、TreeMap 按键排序。选择先看语义:要顺序和重复用 List,要去重用 Set,要按键取值用 Map。",
+      "points": [
+        "ArrayList 与 LinkedList 的差别是「随机访问 vs 中间插删」。",
+        "HashMap 与 TreeMap 的差别是「哈希平均 O(1) vs 有序 O(log n)」。",
+        "并发场景用 java.util.concurrent 里的实现,不要直接共享普通集合。"
+      ],
+      "see_also": [
+        "hashmap",
+        "equals",
+        "generics"
+      ]
+    },
+    {
+      "id": "hashmap",
+      "question": "HashMap 的原理是什么?",
+      "aliases": [
+        "hashmap原理",
+        "hashmap是什么",
+        "hashmap怎么实现的",
+        "hashmap线程安全吗"
+      ],
+      "keywords": [
+        "hashmap",
+        "哈希",
+        "扩容",
+        "红黑树"
+      ],
+      "answer": "HashMap 用「数组 + 链表/红黑树」存键值对:先对键的 hashCode 做扰动并取模定位桶,桶里链表长度超过阈值(默认 8)且容量足够时转红黑树;元素数超过容量乘负载因子(默认 0.75)就扩容为两倍并重新分配。它非线程安全,并发修改可能导致数据不一致;并发场景用 ConcurrentHashMap。",
+      "points": [
+        "键必须正确实现 hashCode 与 equals。",
+        "初始容量与负载因子能预估就预设,减少扩容。",
+        "Java 8 起链表过长会树化,查找最坏从 O(n) 降到 O(log n)。"
+      ],
+      "see_also": [
+        "equals",
+        "collections"
+      ]
+    },
+    {
+      "id": "exception",
+      "question": "Java 的异常体系是什么?",
+      "aliases": [
+        "异常体系",
+        "checked和unchecked区别",
+        "受检异常",
+        "runtimeexception",
+        "try catch"
+      ],
+      "keywords": [
+        "异常",
+        "throwable",
+        "checked",
+        "runtimeexception"
+      ],
+      "answer": "顶层是 Throwable,下面分 Error(严重问题,如 OutOfMemoryError,通常不该捕获)和 Exception。Exception 又分受检异常(checked,必须捕获或声明,如 IOException)与非受检异常(RuntimeException,如 NullPointerException、IllegalArgumentException)。处理原则:能恢复的才捕获,捕获后要么处理要么带上上下文再抛;资源用 try-with-resources 关闭。",
+      "points": [
+        "不要空 catch 吞异常,至少记录并保留原始异常。",
+        "自定义异常要说明它是受检还是非受检,以及调用方该做什么。"
+      ],
+      "see_also": [
+        "compile-run",
+        "java-what"
+      ]
+    },
+    {
+      "id": "generics",
+      "question": "Java 泛型是什么?类型擦除是什么?",
+      "aliases": [
+        "泛型是什么",
+        "类型擦除",
+        "泛型擦除",
+        "什么是泛型"
+      ],
+      "keywords": [
+        "泛型",
+        "类型擦除",
+        "通配符",
+        "pecs"
+      ],
+      "answer": "泛型让类和方法在定义时不写死类型,使用时再指定,例如 List<String>,好处是编译期类型检查、避免强制转换。Java 的泛型在编译后会擦除类型参数(类型擦除),运行时 List<String> 与 List<Integer> 是同一个类,所以不能 new T()、不能直接创建泛型数组、也不能靠运行时判断泛型实参。",
+      "points": [
+        "通配符 ? extends T 偏读,? super T 偏写(PECS 原则)。",
+        "擦除导致泛型信息只在编译期,反射拿不到实参类型。",
+        "需要保留类型信息时可以传 Class<T> 或 TypeReference。"
+      ],
+      "see_also": [
+        "collections",
+        "primitives"
+      ]
+    },
+    {
+      "id": "gc",
+      "question": "Java 垃圾回收(GC)是怎么工作的?",
+      "aliases": [
+        "垃圾回收",
+        "gc原理",
+        "gc是什么",
+        "java怎么回收内存"
+      ],
+      "keywords": [
+        "垃圾回收",
+        "gc",
+        "可达性分析",
+        "分代"
+      ],
+      "answer": "GC 的基本思路是可达性分析:从 GC Roots(栈上引用、静态字段等)出发,标记能到达的对象,不可达的才回收。现代 JVM 常用分代思路:新对象在新生代(Eden + Survivor),多次存活后晋升老年代;新生代用复制算法,老年代用标记-清除或标记-整理。常见收集器有 Serial、Parallel、G1、ZGC。调优前先测量,不要凭感觉改参数。",
+      "points": [
+        "System.gc() 只是建议,不保证立即执行。",
+        "Java 里的内存泄漏通常是「对象被意外强引用」,不是忘了 free。",
+        "关注 GC 日志与停顿时间,而不是只看堆大小。"
+      ],
+      "see_also": [
+        "jvm",
+        "thread"
+      ]
+    },
+    {
+      "id": "thread",
+      "question": "Java 多线程和线程池怎么理解?",
+      "aliases": [
+        "多线程",
+        "线程池",
+        "threadpoolexecutor",
+        "runnable和callable",
+        "java并发"
+      ],
+      "keywords": [
+        "线程",
+        "线程池",
+        "runnable",
+        "callable",
+        "future"
+      ],
+      "answer": "线程是程序执行的最小单位,Java 里可以继承 Thread 或实现 Runnable/Callable 来定义任务。频繁创建销毁线程代价高,所以用线程池(ThreadPoolExecutor)复用线程、控制并发数、排队与拒绝策略。提交任务用 execute(无返回值)或 submit(返回 Future);线程池参数(核心数、最大数、队列、拒绝策略)要按任务类型(CPU 密集或 IO 密集)设计。",
+      "points": [
+        "共享可变状态要同步。",
+        "优先用线程池而不是 new Thread。",
+        "CompletableFuture 适合编排异步任务,但异常处理要显式写。"
+      ],
+      "see_also": [
+        "sync",
+        "gc"
+      ]
+    },
+    {
+      "id": "sync",
+      "question": "synchronized 和 volatile 有什么区别?",
+      "aliases": [
+        "synchronized和volatile的区别",
+        "volatile是什么",
+        "synchronized是什么",
+        "java锁"
+      ],
+      "keywords": [
+        "synchronized",
+        "volatile",
+        "互斥",
+        "可见性",
+        "原子性"
+      ],
+      "answer": "synchronized 提供互斥 + 可见性:同一时刻只有一个线程进入临界区,退出时把修改刷回主内存。volatile 只提供可见性与禁止指令重排,不保证复合操作的原子性 —— 所以 count++ 用 volatile 仍然会丢更新。选择上:要保护共享状态的复合操作,用锁或原子类;只是让一个标志位被其他线程看到,用 volatile。",
+      "points": [
+        "volatile 适合「一个线程写、多个线程读」的状态标志。",
+        "synchronized 可重入,锁的是对象监视器。",
+        "高并发下考虑 java.util.concurrent 的锁与原子类。"
+      ],
+      "see_also": [
+        "thread",
+        "hashmap"
+      ]
+    },
+    {
+      "id": "spring",
+      "question": "Spring 是什么?IoC 和 DI 是什么?",
+      "aliases": [
+        "spring是什么",
+        "ioc是什么",
+        "di是什么",
+        "依赖注入",
+        "spring boot是什么"
+      ],
+      "keywords": [
+        "spring",
+        "ioc",
+        "di",
+        "依赖注入",
+        "aop"
+      ],
+      "answer": "Spring 是 Java 生态里最常用的应用框架,核心是 IoC 容器:对象的创建与依赖装配交给容器,而不是在代码里 new。DI(依赖注入)是实现 IoC 的手段 —— 通过构造器、setter 或字段把依赖传进来。Spring Boot 在 Spring 之上做了自动配置与内嵌容器,让一个可运行的服务更容易起步。",
+      "points": [
+        "优先用构造器注入,依赖关系显式、便于测试。",
+        "@Component/@Service 等注解把类交给容器管理。",
+        "AOP 用于横切关注点(日志、事务),不是万能的。"
+      ],
+      "see_also": [
+        "maven",
+        "java-what"
+      ]
+    },
+    {
+      "id": "maven",
+      "question": "Maven 是什么?",
+      "aliases": [
+        "maven是什么",
+        "pom是什么",
+        "maven和gradle区别",
+        "mvn是什么"
+      ],
+      "keywords": [
+        "maven",
+        "pom",
+        "依赖管理",
+        "构建"
+      ],
+      "answer": "Maven 是 Java 的构建与依赖管理工具:用 pom.xml 声明项目坐标、依赖与插件,按「清理 → 编译 → 测试 → 打包 → 安装/部署」的生命周期执行。依赖从仓库(本地、私服、中央仓库)下载,版本冲突可用 dependencyManagement 或 exclusions 处理。Gradle 是同类工具,用脚本而非 XML 描述构建。",
+      "points": [
+        "pom.xml 是项目的单一事实来源:坐标、依赖、插件都在里面。",
+        "版本冲突先看 mvn dependency:tree 的实际解析结果。"
+      ],
+      "see_also": [
+        "compile-run",
+        "spring"
+      ]
+    },
+    {
+      "id": "primitives",
+      "question": "Java 的基本数据类型和包装类是什么?",
+      "aliases": [
+        "基本数据类型",
+        "包装类",
+        "自动装箱",
+        "自动拆箱",
+        "八种基本类型"
+      ],
+      "keywords": [
+        "基本类型",
+        "包装类",
+        "装箱",
+        "拆箱",
+        "integer"
+      ],
+      "answer": "Java 有 8 种基本类型:byte、short、int、long、float、double、char、boolean,它们不是对象、有默认值、比较用 ==。每种都有对应包装类(Byte、Short、Integer、Long、Float、Double、Character、Boolean),用于泛型和集合。自动装箱/拆箱是编译器语法糖:包装类对象缓存 -128 到 127 的常用值,所以两个 Integer 在这个范围内 == 可能为 true,超出范围就不一定 —— 比较内容请用 equals。",
+      "points": [
+        "包装类可能为 null,拆箱时 NPE 是常见坑。",
+        "金额计算不要用 float/double,用 BigDecimal。",
+        "基本类型默认值只在字段上成立,局部变量必须先赋值。"
+      ],
+      "see_also": [
+        "equals",
+        "generics"
+      ]
+    },
+    {
+      "id": "final-static",
+      "question": "final 和 static 关键字分别是什么意思?",
+      "aliases": [
+        "final是什么",
+        "static是什么",
+        "final和static区别",
+        "static方法"
+      ],
+      "keywords": [
+        "final",
+        "static",
+        "常量"
+      ],
+      "answer": "static 表示属于类而不是实例:静态字段被所有实例共享,静态方法不依赖 this,可以直接用类名调用。final 表示不可再变:final 变量只能赋值一次,final 方法不能被子类重写,final 类不能被继承。两者常一起用(public static final 常量),但含义不同:static 管「归谁」,final 管「能不能改」。",
+      "points": [
+        "static 方法里不能直接访问实例字段。",
+        "final 引用不可重新指向,但对象内部状态仍可能变。"
+      ],
+      "see_also": [
+        "oop",
+        "interface-abstract"
+      ]
+    },
+    {
+      "id": "versions",
+      "question": "Java 有哪些长期支持版本(LTS)?",
+      "aliases": [
+        "java版本",
+        "lts版本",
+        "java8和java17",
+        "java21",
+        "jdk版本"
+      ],
+      "keywords": [
+        "lts",
+        "版本",
+        "jdk8",
+        "jdk17",
+        "jdk21"
+      ],
+      "answer": "Java 的发布节奏是每 6 个月一个功能版本,长期支持(LTS)版本目前常见的是 8、11、17、21(具体支持截止日期请以官方公告为准,我这里不联网核对)。新项目一般选较新的 LTS,老系统常见停留在 8 或 11。升级前重点看:被移除的 API、模块化(JPMS)影响、依赖库兼容性与 GC 默认值变化。",
+      "points": [
+        "「LTS」是支持周期概念,不是语言特性。",
+        "升级前先跑测试与依赖检查,别只看编译通过。"
+      ],
+      "see_also": [
+        "jdk-jre",
+        "compile-run"
+      ]
+    },
+    {
+      "id": "compile-run",
+      "question": "怎么编译和运行一个 Java 程序?",
+      "aliases": [
+        "怎么运行java",
+        "javac怎么用",
+        "java怎么编译",
+        "helloworld"
+      ],
+      "keywords": [
+        "javac",
+        "编译",
+        "运行",
+        "main方法",
+        "classpath"
+      ],
+      "answer": "写一个 HelloWorld.java,类名与文件名一致,入口是 public static void main(String[] args)。编译:javac HelloWorld.java 生成 HelloWorld.class;运行:java HelloWorld(注意不是 java HelloWorld.class)。带包名时源码要放在对应目录,运行时用全限定名,或用构建工具(Maven/Gradle)管理编译与依赖。",
+      "points": [
+        "类名与文件名大小写必须一致(public 类)。",
+        "找不到类先看 classpath 与包名是否对得上。",
+        "真实项目用构建工具,不要手撸 javac 命令。"
+      ],
+      "see_also": [
+        "bytecode",
+        "jdk-jre",
+        "maven"
+      ]
+    }
+  ],
+  "safety": {
+    "refuse": [
+      {
+        "id": "self-harm-method",
+        "label": "自伤方法请求",
+        "patterns": [
+          "(自杀|自残|轻生).{0,8}(方法|方式|步骤|途径|工具|手段|实施|动手)",
+          "(怎么|如何|教我|告诉).{0,6}(自杀|自残|轻生)"
+        ],
+        "unless": [],
+        "reason": "提供自伤方法可能直接造成伤害",
+        "advice": [
+          "我不会提供任何自伤的方式、步骤或工具信息。",
+          "如果你正处在危险中,请立刻联系当地的紧急服务,或告诉一个你信任的人,让对方陪着你。",
+          "如果你想帮助别人,可以问「怎样识别身边人的自伤风险」这类问题。"
+        ]
+      },
+      {
+        "id": "weapon-making",
+        "label": "危险物制作",
+        "patterns": [
+          "(制作|制造|组装|自制|教我).{0,10}(炸弹|爆炸物|枪支|毒品|毒药)"
+        ],
+        "unless": [
+          "防止|防范|法规|法律|查处"
+        ],
+        "reason": "提供制造方法可能造成严重伤害",
+        "advice": [
+          "这类制作方法不在可回答范围内。",
+          "如果出于安全防护或法规合规的疑问,可以问相关防护与法律问题。"
+        ]
+      },
+      {
+        "id": "credentials",
+        "label": "凭据与隐私索取",
+        "patterns": [
+          "(把|将)?(密码|身份证号|银行卡号).{0,8}(告诉|发给|给我|发我)",
+          "(怎么|如何).{0,6}(盗取|拿到|查)(别人|他人).{0,6}(密码|账号|身份证|住址)"
+        ],
+        "unless": [],
+        "reason": "索取或盗取他人凭据可能被用于侵害",
+        "advice": [
+          "我不会提供获取他人账号、密码、身份证、住址的方法。",
+          "如果是找回自己的账号,请走服务方的官方找回流程。"
+        ]
+      },
+      {
+        "id": "unauthorized-intrusion",
+        "label": "未授权入侵",
+        "patterns": [
+          "(入侵|破解|黑进|渗透|绕过).{0,10}(网站|服务器|系统|后台|账户|路由器)",
+          "(怎么|如何|教我|帮我).{0,8}(入侵|破解|黑进|盗号)"
+        ],
+        "unless": [
+          "防止|防范|防护|防御|合规|授权|渗透测试|安全评估"
+        ],
+        "reason": "未经授权入侵他人系统既违法也有害",
+        "advice": [
+          "未授权入侵、破解他人系统的具体做法不回答。",
+          "如果是在做安全防护,可以问「常见 Web 攻击怎么防」这类防御性问题。"
+        ]
+      },
+      {
+        "id": "license-bypass",
+        "label": "绕过软件授权",
+        "patterns": [
+          "(破解|绕过|跳过).{0,8}(授权|许可|激活|license|正版验证)"
+        ],
+        "unless": [
+          "防止|防范|合规|正版|购买"
+        ],
+        "reason": "绕过授权通常侵犯他人权利",
+        "advice": [
+          "绕过软件授权与激活的具体做法不回答。",
+          "如果是合法迁移或授权问题,请走厂商的正式渠道。"
+        ]
+      },
+      {
+        "id": "malware",
+        "label": "恶意程序",
+        "patterns": [
+          "(写|做|生成|制作).{0,10}(病毒|木马|勒索软件|恶意程序|挖矿脚本)"
+        ],
+        "unless": [
+          "防范|查杀|识别|分析"
+        ],
+        "reason": "恶意程序会伤害他人设备与数据",
+        "advice": [
+          "木马、勒索软件、挖矿脚本的编写不回答。",
+          "防御与查杀思路可以问「Java 应用常见安全风险」这类问题。"
+        ]
+      }
+    ],
+    "caution": [
+      {
+        "id": "self-harm-mention",
+        "label": "情绪高风险",
+        "patterns": [
+          "自杀|自残|轻生|不想活|活不下去"
+        ],
+        "unless": [],
+        "reason": "涉及自伤情绪表达",
+        "advice": [
+          "如果你或身边的人正处在危险里,请立刻联系当地紧急服务或信任的人;我只能提供一般信息,不能替代专业援助。"
+        ]
+      },
+      {
+        "id": "medical-advice",
+        "label": "医疗建议",
+        "patterns": [
+          "吃什么药",
+          "用什么药",
+          "剂量",
+          "帮我诊断",
+          "是不是得了"
+        ],
+        "unless": [],
+        "reason": "涉及诊断或用药",
+        "advice": [
+          "医疗问题请咨询医生或药师;我不能诊断、开药或给出剂量。"
+        ]
+      },
+      {
+        "id": "legal-advice",
+        "label": "法律建议",
+        "patterns": [
+          "违法吗",
+          "会不会坐牢",
+          "法律责任",
+          "起诉"
+        ],
+        "unless": [],
+        "reason": "涉及具体法律判断",
+        "advice": [
+          "具体法律问题请咨询律师;我只能做一般性的信息与伦理讨论。"
+        ]
+      },
+      {
+        "id": "decompile",
+        "label": "反编译他人软件",
+        "patterns": [
+          "反编译",
+          "逆向(别人的|他人的)?(软件|程序|jar)"
+        ],
+        "unless": [
+          "学习",
+          "自己的",
+          "授权",
+          "安全研究"
+        ],
+        "reason": "可能涉及他人知识产权",
+        "advice": [
+          "反编译他人软件可能涉及许可与法律问题;只对自己的代码或明确授权的代码做这件事。"
+        ]
+      },
+      {
+        "id": "production-change",
+        "label": "生产环境操作",
+        "patterns": [
+          "生产环境",
+          "线上库",
+          "删库",
+          "rm -rf"
+        ],
+        "unless": [],
+        "reason": "涉及高风险的生产改动",
+        "advice": [
+          "改动生产环境前先备份、在测试环境验证,并确认回滚方案。"
+        ]
+      },
+      {
+        "id": "others-privacy",
+        "label": "他人隐私",
+        "patterns": [
+          "别人的(手机号|身份证|住址|聊天记录|密码)",
+          "人肉搜索"
+        ],
+        "unless": [],
+        "reason": "涉及他人个人信息",
+        "advice": [
+          "处理他人个人信息要遵守知情同意与最小必要原则;我不能帮助获取或传播他人隐私。"
+        ]
+      }
+    ]
+  }
+}

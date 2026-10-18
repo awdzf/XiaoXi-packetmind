@@ -1,0 +1,25 @@
+{
+  "_readme": ["测试用数据包:水果。它包含 apple(contains),也是 food 的子集。"],
+  "expert": {
+    "id": "fruit",
+    "name": "水果",
+    "tagline": "测试用:水果这一块知识",
+    "scope": ["水果", "果实"],
+    "contains": ["apple"],
+    "contained_by": ["food"],
+    "limits": ["测试用"],
+    "siblings": []
+  },
+  "entries": [
+    {
+      "id": "fruit-what",
+      "question": "水果是什么?",
+      "aliases": ["水果是啥"],
+      "keywords": ["水果", "果实", "可食用"],
+      "answer": "水果是植物结出的可食用果实,通常含糖和维生素。",
+      "points": ["水果是植物的可食用部分。"],
+      "see_also": []
+    }
+  ],
+  "safety": { "refuse": [], "caution": [] }
+}

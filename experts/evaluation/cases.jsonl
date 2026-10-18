@@ -1,0 +1,27 @@
+# 小析检索评测集：一行一条；direct = 原题，paraphrase = 换个问法，negative = 应弃权
+{"id":"direct-vector-field","question":"向量场是什么?","folder":"math","entry":"vector-field","category":"direct"}
+{"id":"direct-vector","question":"向量是什么?","folder":"math","entry":"vector","category":"direct"}
+{"id":"direct-derivative","question":"导数是什么?","folder":"math","entry":"derivative","category":"direct"}
+{"id":"direct-gravity","question":"万有引力是什么?","folder":"physics","entry":"gravity","category":"direct"}
+{"id":"direct-gravitational-wave","question":"引力波是什么?","folder":"physics","entry":"gravitational-wave","category":"direct"}
+{"id":"direct-relativity","question":"相对论是什么?","folder":"physics","entry":"relativity","category":"direct"}
+{"id":"direct-html","question":"HTML是什么?","folder":"web_dev","entry":"html-what","category":"direct"}
+{"id":"direct-css","question":"CSS是什么?","folder":"web_dev","entry":"css-what","category":"direct"}
+{"id":"direct-dom","question":"什么是 DOM?","folder":"web_dev","entry":"dom-what","category":"direct"}
+{"id":"direct-java","question":"Java 是什么?","folder":"java","entry":"java-what","category":"direct"}
+{"id":"direct-jvm","question":"JVM 是什么?","folder":"java","entry":"jvm","category":"direct"}
+{"id":"direct-emotion","question":"情绪是什么?","folder":"emotion","entry":"emotion-what","category":"direct"}
+{"id":"direct-empathy","question":"共情是什么?","folder":"emotion","entry":"empathy","category":"direct"}
+{"id":"direct-ethics","question":"道德伦理是什么?","folder":"ethics","entry":"ethics-what","category":"direct"}
+{"id":"direct-trolley","question":"电车难题说明了什么?","folder":"ethics","entry":"trolley","category":"direct"}
+{"id":"para-vector-field","question":"什么叫向量场","folder":"math","entry":"vector-field","category":"paraphrase"}
+{"id":"para-derivative","question":"导数在几何上是什么","folder":"math","entry":"derivative","category":"paraphrase"}
+{"id":"para-gravitational-wave","question":"引力波是怎么产生的","folder":"physics","entry":"gravitational-wave","category":"paraphrase"}
+{"id":"para-html","question":"HTML 是干嘛的","folder":"web_dev","entry":"html-what","category":"paraphrase"}
+{"id":"para-jvm","question":"Java 的虚拟机是什么","folder":"java","entry":"jvm","category":"paraphrase"}
+{"id":"para-empathy","question":"共情是哪几块","folder":"emotion","entry":"empathy","category":"paraphrase"}
+{"id":"neg-cat","question":"怎么给猫剪指甲","must_abstain":true,"category":"negative"}
+{"id":"neg-tomato","question":"番茄炒蛋要放多少盐","must_abstain":true,"category":"negative"}
+{"id":"neg-weather","question":"今天天气怎么样","must_abstain":true,"category":"negative"}
+{"id":"neg-company","question":"我们公司的灰度发布规则是什么","must_abstain":true,"category":"negative"}
+{"id":"neg-stock","question":"请推荐一只股票","must_abstain":true,"category":"negative"}

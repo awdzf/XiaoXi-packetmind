@@ -1,0 +1,960 @@
+{
+  "expert": {
+    "id": "web_dev",
+    "name": "网页开发与设计",
+    "tagline": "只答网页结构、样式、交互、可访问性与设计基础;不做项目、不跑代码、不联网。",
+    "scope": [
+      "html",
+      "css",
+      "javascript",
+      "js",
+      "typescript",
+      "前端",
+      "网页",
+      "网站",
+      "浏览器",
+      "dom",
+      "http",
+      "https",
+      "响应式",
+      "可访问性",
+      "无障碍",
+      "配色",
+      "排版",
+      "布局",
+      "flexbox",
+      "flex",
+      "grid",
+      "选择器",
+      "盒模型",
+      "跨域",
+      "cors",
+      "seo",
+      "web",
+      "web开发",
+      "网页设计",
+      "ui",
+      "ux",
+      "交互设计",
+      "设计原则",
+      "字体",
+      "色彩",
+      "图标",
+      "svg",
+      "canvas",
+      "websocket",
+      "cookie",
+      "localstorage",
+      "cdn",
+      "渲染",
+      "性能优化",
+      "spa",
+      "ssr",
+      "语义化",
+      "开发者工具"
+    ],
+    "siblings": [
+      {
+        "id": "java",
+        "name": "Java",
+        "folder": "java",
+        "examples": [
+          "Java 是什么?",
+          "JVM 是什么?"
+        ]
+      },
+      {
+        "id": "math",
+        "name": "数学",
+        "folder": "math",
+        "examples": [
+          "数学是什么?",
+          "自然数、整数、有理数、实数和复数有什么区别?"
+        ]
+      },
+      {
+        "id": "physics",
+        "name": "物理",
+        "folder": "physics",
+        "examples": [
+          "物理学是什么?",
+          "牛顿三大定律是什么?"
+        ]
+      },
+      {
+        "id": "emotion",
+        "name": "情感与心理",
+        "folder": "emotion",
+        "examples": [
+          "心理学是什么?",
+          "情绪是什么?"
+        ]
+      },
+      {
+        "id": "ethics",
+        "name": "道德伦理",
+        "folder": "ethics",
+        "examples": [
+          "道德伦理是什么?",
+          "伦理学有哪些主要流派?"
+        ]
+      }
+    ],
+    "limits": [
+      "不写项目、不生成完整代码、不跑构建或测试",
+      "不联网:不查最新文档、不核对浏览器兼容性数据",
+      "不代替人做设计决策与验收(好不好看只有人能说)",
+      "只答基础概念:版本细节与具体报错排查请查官方文档"
+    ]
+  },
+  "entries": [
+    {
+      "id": "html-what",
+      "question": "HTML是什么?",
+      "aliases": [
+        "html是什么",
+        "什么是html",
+        "html是啥",
+        "html有什么用",
+        "解释一下html",
+        "介绍html",
+        "html干什么的"
+      ],
+      "keywords": [
+        "html",
+        "超文本",
+        "标记语言"
+      ],
+      "answer": "HTML(HyperText Markup Language,超文本标记语言)是描述网页结构的标记语言:它用标签给内容标上语义 —— h1 是标题、p 是段落、a 是链接、img 是图片。浏览器把 HTML 解析成 DOM 树,再配合 CSS(样式)和 JavaScript(行为)渲染成页面。HTML 本身不是编程语言:它没有变量、循环和运算,只负责「这段内容是什么」。",
+      "points": [
+        "标签 + 属性组成元素:属性提供附加信息,例如 href 指向链接地址。",
+        "HTML 只描述结构与语义,不负责样式(那是 CSS),也不负责行为(那是 JavaScript)。",
+        "语义化标签(nav/main/article/section)让结构和可访问性更好。"
+      ],
+      "see_also": [
+        "css-what",
+        "dom-what",
+        "semantic-html"
+      ]
+    },
+    {
+      "id": "css-what",
+      "question": "CSS是什么?",
+      "aliases": [
+        "css是什么",
+        "什么是css",
+        "css是啥",
+        "css有什么用",
+        "解释一下css",
+        "介绍css"
+      ],
+      "keywords": [
+        "css",
+        "样式表",
+        "层叠"
+      ],
+      "answer": "CSS(Cascading Style Sheets,层叠样式表)负责网页的表现:颜色、字体、间距、布局、动画。一条 CSS 规则由「选择器 + 声明块」组成,同一条规则可以作用到许多元素;当多条规则冲突时,由层叠顺序、优先级(选择器权重)和继承关系决定谁生效。CSS 把样式和 HTML 结构分开,改版时不用动内容。",
+      "points": [
+        "选择器决定「改谁」,声明块决定「改成什么」。",
+        "层叠与优先级:同权重看先后;内联样式权重最高,但不是好习惯。",
+        "盒模型、Flexbox、Grid 是现代布局的三块基础。"
+      ],
+      "see_also": [
+        "box-model",
+        "flex-vs-grid",
+        "responsive"
+      ]
+    },
+    {
+      "id": "dom-what",
+      "question": "什么是 DOM?",
+      "aliases": [
+        "dom是什么",
+        "什么是dom",
+        "dom有什么用",
+        "文档对象模型"
+      ],
+      "keywords": [
+        "dom",
+        "文档对象模型",
+        "节点树"
+      ],
+      "answer": "DOM(Document Object Model,文档对象模型)是浏览器把 HTML 解析成的一棵对象树:每个标签、文本、属性都成为树上的节点。JavaScript 通过 DOM API(查询、创建、修改节点)来改页面 —— 页面上看到的「动态更新」,底层几乎都是 DOM 在变。DOM 是浏览器提供的编程接口,不是 HTML 文件本身。",
+      "points": [
+        "HTML 是文本,DOM 是浏览器解析后得到的对象树。",
+        "改 DOM 会触发布局或重绘,频繁操作要合并、批量处理。"
+      ],
+      "see_also": [
+        "html-what",
+        "js-what",
+        "browser-render"
+      ]
+    },
+    {
+      "id": "js-what",
+      "question": "JavaScript 是什么?",
+      "aliases": [
+        "javascript是什么",
+        "js是什么",
+        "什么是javascript",
+        "什么是js",
+        "js有什么用"
+      ],
+      "keywords": [
+        "javascript",
+        "js",
+        "脚本",
+        "es6"
+      ],
+      "answer": "JavaScript 是网页的脚本语言:它让页面能响应用户操作、发网络请求、修改 DOM。JS 在浏览器里是单线程执行的,靠事件循环调度异步任务;同一门语言也能在服务端运行(Node.js)。它和 Java 没有关系,名字相似只是历史原因。",
+      "points": [
+        "JS 负责行为,HTML 负责结构,CSS 负责表现。",
+        "单线程不等于不能并发:异步任务靠事件循环排队执行。"
+      ],
+      "see_also": [
+        "event-loop",
+        "dom-what",
+        "frontend-backend"
+      ]
+    },
+    {
+      "id": "semantic-html",
+      "question": "语义化 HTML 是什么?",
+      "aliases": [
+        "语义化是什么",
+        "什么是语义化",
+        "语义化html",
+        "为什么要语义化",
+        "语义化标签"
+      ],
+      "keywords": [
+        "语义化",
+        "semantic",
+        "nav",
+        "main",
+        "article"
+      ],
+      "answer": "语义化 HTML 指用含义正确的标签描述内容,而不是用一堆 div:标题用 h1 到 h6、导航用 nav、正文用 main、独立内容用 article、列表用 ul/ol。好处是读屏软件能正确朗读、搜索引擎能理解结构、代码更好维护。语义标签默认样式很少,样式仍由 CSS 负责 —— 语义和样式是两件事。",
+      "points": [
+        "先问「这段内容是什么」再选标签,而不是先想它长什么样。",
+        "语义化是可访问性与 SEO 的共同地基。"
+      ],
+      "see_also": [
+        "html-what",
+        "a11y",
+        "seo-basics"
+      ]
+    },
+    {
+      "id": "box-model",
+      "question": "CSS 盒模型是什么?",
+      "aliases": [
+        "盒模型是什么",
+        "什么是盒模型",
+        "box模型",
+        "盒模型",
+        "box-sizing"
+      ],
+      "keywords": [
+        "盒模型",
+        "box",
+        "margin",
+        "padding",
+        "border"
+      ],
+      "answer": "盒模型描述一个元素在页面上占多大地方:内容(content)、内边距(padding)、边框(border)、外边距(margin)四层从里到外。默认 width 只管内容区,所以加 padding 或 border 会把盒子撑大;设置 box-sizing: border-box 之后,width 包含 padding 与 border,布局时更好算。",
+      "points": [
+        "content-box(默认):width = 内容宽度。",
+        "border-box:width = 内容 + padding + border。",
+        "margin 不计入元素自身尺寸,但会影响与周围元素的间距。"
+      ],
+      "see_also": [
+        "css-what",
+        "flex-vs-grid"
+      ]
+    },
+    {
+      "id": "flex-vs-grid",
+      "question": "Flexbox 和 Grid 有什么区别?",
+      "aliases": [
+        "flex和grid区别",
+        "flexbox和grid区别",
+        "flex与grid的区别",
+        "什么是flexbox",
+        "什么是grid",
+        "flex布局"
+      ],
+      "keywords": [
+        "flexbox",
+        "flex",
+        "grid",
+        "布局"
+      ],
+      "answer": "两者都是 CSS 布局模块,方向不同:Flexbox 是一维布局,沿一条主轴排列(一行或一列),适合导航栏、按钮组、卡片内部对齐;Grid 是二维布局,同时定义行和列,适合整页栅格、卡片网格。实践上常一起用:Grid 搭页面骨架,Flexbox 排组件内部。",
+      "points": [
+        "一维用 Flex,二维用 Grid;不要为了用而用。",
+        "两者都支持对齐、间距与自适应,优先用布局而不是 float 拼。"
+      ],
+      "see_also": [
+        "css-what",
+        "responsive"
+      ]
+    },
+    {
+      "id": "responsive",
+      "question": "响应式设计是什么?",
+      "aliases": [
+        "响应式是什么",
+        "什么是响应式",
+        "响应式布局",
+        "移动端适配",
+        "手机适配"
+      ],
+      "keywords": [
+        "响应式",
+        "媒体查询",
+        "viewport",
+        "移动端"
+      ],
+      "answer": "响应式设计指同一套页面能适配不同屏幕:用 viewport 元标签让移动端按设备宽度渲染,用媒体查询按宽度切换布局,用流式单位(%、rem、fr)让内容伸缩,图片用 max-width:100%。主流做法是移动优先:先写小屏样式,再用 min-width 媒体查询逐级增强。",
+      "points": [
+        "断点按内容需要定,不要照抄设备型号。",
+        "先保证小屏可用,再加宽屏增强,比反过来容易。"
+      ],
+      "see_also": [
+        "flex-vs-grid",
+        "a11y",
+        "typography"
+      ]
+    },
+    {
+      "id": "a11y",
+      "question": "网页可访问性是什么?",
+      "aliases": [
+        "可访问性是什么",
+        "什么是可访问性",
+        "无障碍是什么",
+        "a11y是什么",
+        "无障碍设计"
+      ],
+      "keywords": [
+        "可访问性",
+        "无障碍",
+        "a11y",
+        "读屏",
+        "键盘"
+      ],
+      "answer": "可访问性(a11y)指让尽可能多的人能用你的页面,包括用读屏软件、只用键盘、视力或听力受限的用户。基础动作:图片写有意义的 alt、表单控件配 label、键盘可操作且焦点可见、颜色对比度达标、不要只用颜色传达信息。它不是额外功能,而是把 HTML 语义和交互写对。",
+      "points": [
+        "先修语义和键盘操作,再考虑 ARIA;ARIA 补不了错误的标签结构。",
+        "可访问性好的页面通常对所有人也更好用。"
+      ],
+      "see_also": [
+        "semantic-html",
+        "color-contrast"
+      ]
+    },
+    {
+      "id": "http-https",
+      "question": "HTTP 和 HTTPS 有什么区别?",
+      "aliases": [
+        "http是什么",
+        "https是什么",
+        "http和https的区别",
+        "什么是http",
+        "什么是https"
+      ],
+      "keywords": [
+        "http",
+        "https",
+        "tls",
+        "协议"
+      ],
+      "answer": "HTTP 是浏览器与服务器之间传网页的协议:请求-响应、无状态、方法(GET/POST 等)表达意图。HTTPS 是 HTTP over TLS:在 HTTP 下面加一层加密与身份校验,防止内容被窃听或篡改,并证明你连的是真网站。今天的新站点应默认使用 HTTPS。",
+      "points": [
+        "HTTPS 解决的是传输安全,不解决「网站本身是否可信」。",
+        "缓存、状态码、请求头这些概念在 HTTP 与 HTTPS 下是一样的。"
+      ],
+      "see_also": [
+        "cors",
+        "web-security"
+      ]
+    },
+    {
+      "id": "cors",
+      "question": "跨域(CORS)是什么?",
+      "aliases": [
+        "跨域是什么",
+        "什么是跨域",
+        "cors是什么",
+        "跨域怎么解决",
+        "同源策略"
+      ],
+      "keywords": [
+        "跨域",
+        "cors",
+        "同源"
+      ],
+      "answer": "浏览器的同源策略限制页面脚本读取不同源(协议、域名、端口任一不同)的响应;CORS 是服务器用响应头(如 Access-Control-Allow-Origin)声明「允许哪些源来读」的机制。跨域报错通常是服务端没给出合适的 CORS 头,或预检请求(OPTIONS)没被处理 —— 这不是前端能单方面绕过的。",
+      "points": [
+        "同源 = 协议 + 域名 + 端口完全相同。",
+        "带凭据的请求不能用通配符源,要具体到源并允许 credentials。"
+      ],
+      "see_also": [
+        "http-https",
+        "web-security"
+      ]
+    },
+    {
+      "id": "storage",
+      "question": "Cookie、localStorage 和 sessionStorage 有什么区别?",
+      "aliases": [
+        "cookie和localstorage区别",
+        "localstorage和sessionstorage区别",
+        "浏览器存储",
+        "cookie是什么",
+        "localstorage是什么"
+      ],
+      "keywords": [
+        "cookie",
+        "localstorage",
+        "sessionstorage",
+        "存储"
+      ],
+      "answer": "三者都存浏览器端数据,生命周期与用途不同:Cookie 会随同源请求自动发送,容量约 4KB,常用于会话标识;localStorage 容量约 5 到 10MB,不随请求发送,除非主动清除否则一直在;sessionStorage 同样不随请求发送,但关闭标签页就清空。敏感凭据不建议放 localStorage(容易被 XSS 读走),会话更适合 HttpOnly Cookie。",
+      "points": [
+        "要「随请求自动带上」,用 Cookie;要「前端自己存」,用 Web Storage。",
+        "存储不是加密:同源脚本读得到的内容,XSS 也读得到。"
+      ],
+      "see_also": [
+        "web-security",
+        "spa-ssr"
+      ]
+    },
+    {
+      "id": "websocket",
+      "question": "WebSocket 是什么?",
+      "aliases": [
+        "websocket是什么",
+        "什么是websocket",
+        "websocket和轮询区别",
+        "长连接是什么"
+      ],
+      "keywords": [
+        "websocket",
+        "长连接",
+        "轮询",
+        "全双工"
+      ],
+      "answer": "WebSocket 是浏览器与服务器之间的全双工长连接:一次 HTTP 握手之后,双方可以随时主动发消息,不需要每次请求都重新建连。它适合聊天、协同编辑、实时行情这类双向高频场景;普通轮询则是客户端定时问服务器。WebSocket 不自动解决鉴权、断线重连与消息顺序,这些要在应用层设计。",
+      "points": [
+        "握手用 HTTP,之后走独立的帧协议。",
+        "断线重连、心跳、鉴权都要应用层自己补。"
+      ],
+      "see_also": [
+        "http-https",
+        "spa-ssr"
+      ]
+    },
+    {
+      "id": "spa-ssr",
+      "question": "SPA、SSR 和 SSG 有什么区别?",
+      "aliases": [
+        "spa是什么",
+        "ssr是什么",
+        "ssg是什么",
+        "单页应用",
+        "服务端渲染"
+      ],
+      "keywords": [
+        "spa",
+        "ssr",
+        "ssg",
+        "单页应用",
+        "服务端渲染",
+        "静态生成"
+      ],
+      "answer": "SPA(单页应用)在浏览器里由 JS 渲染页面,切换页面不整页刷新,首屏可能慢、SEO 需要额外处理;SSR(服务端渲染)在服务端生成 HTML 再交给浏览器,首屏更快、对 SEO 更友好,但要维护服务端渲染;SSG(静态生成)在构建时把页面生成静态文件,最快最省,适合内容不常变的站点。选择取决于内容更新频率与首屏要求。",
+      "points": [
+        "渲染方式不是越新越好:内容型站点常选 SSG,交互重的应用常选 SPA。",
+        "同构渲染让一份组件在服务端与浏览器都跑,但复杂度更高。"
+      ],
+      "see_also": [
+        "frontend-backend",
+        "web-perf"
+      ]
+    },
+    {
+      "id": "browser-render",
+      "question": "浏览器是怎么把网页渲染出来的?",
+      "aliases": [
+        "浏览器渲染流程",
+        "渲染流程",
+        "浏览器怎么渲染网页",
+        "关键渲染路径",
+        "浏览器怎么显示网页"
+      ],
+      "keywords": [
+        "渲染",
+        "渲染流程",
+        "dom树",
+        "cssom",
+        "重排",
+        "重绘"
+      ],
+      "answer": "大致五步:解析 HTML 得到 DOM、解析 CSS 得到 CSSOM;两者合成渲染树;计算每个元素的布局(位置与尺寸);绘制成图层;最后合成上屏。JS 可能修改 DOM 或 CSSOM,导致重新布局或重绘。理解这条链是性能优化的基础:减少阻塞渲染的资源、避免频繁触发布局、把动画交给 transform 与 opacity。",
+      "points": [
+        "布局(重排)比重绘贵,重绘比合成贵。",
+        "阻塞渲染的脚本与样式会推迟首屏,能延后的就延后。"
+      ],
+      "see_also": [
+        "dom-what",
+        "web-perf",
+        "event-loop"
+      ]
+    },
+    {
+      "id": "web-perf",
+      "question": "前端性能优化有哪些基础手段?",
+      "aliases": [
+        "性能优化",
+        "前端性能优化",
+        "网页加载慢怎么办",
+        "怎么优化网页性能",
+        "网站打开慢"
+      ],
+      "keywords": [
+        "性能优化",
+        "加载慢",
+        "lighthouse",
+        "懒加载",
+        "缓存"
+      ],
+      "answer": "先测量再优化:用 Lighthouse 或 DevTools 的 Performance 面板找到瓶颈。常见手段:压缩与按需加载 JS/CSS、图片用合适格式与尺寸并懒加载、给静态资源加缓存与 CDN、减少首屏阻塞资源、避免布局抖动(批量读写 DOM)、长列表虚拟化。优化的目标是最小化首屏关键路径,而不是把每个指标都刷到满分。",
+      "points": [
+        "没有测量的优化通常是猜的。",
+        "先解决最大的那个瓶颈,再谈微调。"
+      ],
+      "see_also": [
+        "browser-render",
+        "spa-ssr"
+      ]
+    },
+    {
+      "id": "design-principles",
+      "question": "网页设计有哪些基本原则?",
+      "aliases": [
+        "设计原则",
+        "网页设计原则",
+        "设计四原则",
+        "怎么设计网页",
+        "设计的基本原则"
+      ],
+      "keywords": [
+        "设计原则",
+        "对比",
+        "对齐",
+        "亲密性",
+        "重复",
+        "格式塔"
+      ],
+      "answer": "最常被引用的是四条:对比(重要与次要拉开差异)、重复(统一字体、颜色、间距形成节奏)、对齐(元素之间有明确的视觉基线)、亲密性(相关的内容靠近,不相关的留白分开)。它们解决的是「页面看起来乱」的根因:层级、秩序与分组。更完整的体系可以再看格式塔原则与设计系统(间距刻度、字号阶梯、组件规范)。",
+      "points": [
+        "四个原则里,亲密性和对齐最能立刻改善版面。",
+        "设计系统是原则的落地:先定间距与字号刻度,再排页面。"
+      ],
+      "see_also": [
+        "color-contrast",
+        "typography",
+        "responsive"
+      ]
+    },
+    {
+      "id": "color-contrast",
+      "question": "网页配色和对比度有什么要求?",
+      "aliases": [
+        "对比度",
+        "配色",
+        "颜色对比度",
+        "wcag对比度",
+        "网页配色"
+      ],
+      "keywords": [
+        "对比度",
+        "配色",
+        "wcag",
+        "可读性",
+        "颜色"
+      ],
+      "answer": "文字与背景的对比度决定可读性。WCAG 2.x 的 AA 级要求:正文对比度至少 4.5 比 1,大号文字(约 18pt 或 14pt 粗体以上)至少 3 比 1;AAA 级正文要求 7 比 1。配色上先保证对比度,再谈美感:用中性色打底、一个主色强调、控制饱和度;不要只用颜色传达状态(色盲用户看不出)。",
+      "points": [
+        "深色底浅色字同样受对比度约束,不是天然可读。",
+        "用对比度检查工具核对,别凭肉眼判断。"
+      ],
+      "see_also": [
+        "a11y",
+        "design-principles",
+        "typography"
+      ]
+    },
+    {
+      "id": "typography",
+      "question": "网页排版要注意什么?",
+      "aliases": [
+        "排版",
+        "字体排版",
+        "网页排版",
+        "字号行高",
+        "行高"
+      ],
+      "keywords": [
+        "排版",
+        "字体",
+        "行高",
+        "字号",
+        "可读性"
+      ],
+      "answer": "三件事决定可读性:字号阶梯(正文 16px 左右起步,标题按比例拉开层级)、行高(正文约 1.4 到 1.6)、行宽(每行约 45 到 75 个字符)。中文正文常用 16 到 18px、行高 1.6 到 1.8;标题与正文的对比靠字号、字重、颜色,而不是靠花体。字体家族控制在 1 到 2 个,系统字体栈能避免加载抖动。",
+      "points": [
+        "正文小于 16px 在移动端会明显吃力。",
+        "行宽过长的段落要限宽,否则眼睛回行会丢行。"
+      ],
+      "see_also": [
+        "design-principles",
+        "color-contrast",
+        "responsive"
+      ]
+    },
+    {
+      "id": "seo-basics",
+      "question": "SEO 是什么?",
+      "aliases": [
+        "seo是什么",
+        "什么是seo",
+        "搜索引擎优化"
+      ],
+      "keywords": [
+        "seo",
+        "搜索引擎",
+        "meta",
+        "标题"
+      ],
+      "answer": "SEO(搜索引擎优化)是让页面更容易被搜索引擎发现、理解并排到合适位置的做法。基础项:每页有唯一且描述性的 title 与 meta description、用语义化标题层级、内容能被抓取(不依赖 JS 才能看到正文)、链接结构清晰、移动端友好、加载速度合理。它不是「堆关键词」,而是让页面结构和内容对得上用户的搜索意图。",
+      "points": [
+        "先有内容与结构,再谈技巧。",
+        "title 和 h1 不要互相打架,一页一个主题。"
+      ],
+      "see_also": [
+        "semantic-html",
+        "spa-ssr",
+        "web-perf"
+      ]
+    },
+    {
+      "id": "frontend-backend",
+      "question": "前端和后端有什么区别?",
+      "aliases": [
+        "前端是什么",
+        "后端是什么",
+        "前端和后端的区别",
+        "什么是前端",
+        "什么是后端"
+      ],
+      "keywords": [
+        "前端",
+        "后端",
+        "api",
+        "服务器"
+      ],
+      "answer": "前端是运行在用户设备上的那部分:HTML/CSS/JavaScript 负责界面、交互与请求;后端是运行在服务器上的那部分:处理业务逻辑、读写数据库、鉴权、提供 API。两者通过 HTTP 接口交换数据(常见 JSON)。前端关心体验与兼容性,后端关心数据一致性、安全与并发。",
+      "points": [
+        "接口契约(字段、错误码、鉴权方式)是两边协作的核心。",
+        "「前端」不等于「只做页面」,「后端」也不等于「只连数据库」。"
+      ],
+      "see_also": [
+        "http-https",
+        "spa-ssr",
+        "dom-what"
+      ]
+    },
+    {
+      "id": "event-loop",
+      "question": "JavaScript 事件循环是什么?",
+      "aliases": [
+        "事件循环",
+        "event loop",
+        "微任务和宏任务",
+        "promise执行顺序",
+        "什么是事件循环"
+      ],
+      "keywords": [
+        "事件循环",
+        "event loop",
+        "微任务",
+        "宏任务",
+        "promise"
+      ],
+      "answer": "JS 在浏览器里只有一个调用栈,异步任务由事件循环调度:同步代码先跑完,然后清空微任务队列(Promise 回调等),再取一个宏任务(定时器、事件回调等),如此循环。所以 Promise 回调总比 setTimeout 先执行;长时间同步计算会阻塞页面,重活要拆分或放到 Worker。",
+      "points": [
+        "微任务在每次宏任务结束后、下一次渲染前清空。",
+        "await 之后的行内代码是微任务,不是「立刻同步执行」。"
+      ],
+      "see_also": [
+        "js-what",
+        "browser-render"
+      ]
+    },
+    {
+      "id": "web-security",
+      "question": "XSS 和 CSRF 是什么?",
+      "aliases": [
+        "xss是什么",
+        "csrf是什么",
+        "xss和csrf",
+        "web安全",
+        "跨站脚本"
+      ],
+      "keywords": [
+        "xss",
+        "csrf",
+        "web安全",
+        "注入",
+        "csp"
+      ],
+      "answer": "XSS(跨站脚本)是攻击者把脚本注入你的页面,在别的用户浏览器里执行;防护核心是输出转义(按上下文编码)、避免用 innerHTML 拼接不可信内容、必要时加 CSP。CSRF(跨站请求伪造)是攻击者借用户已登录的身份,诱导浏览器向你的站点发请求;防护用 CSRF token、SameSite Cookie、校验 Origin 或 Referer。两者都属「Web 攻击怎么防」的基础,具体实现要按框架文档来。",
+      "points": [
+        "XSS 防的是「注入执行」,CSRF 防的是「借身份发请求」,别混为一谈。",
+        "任何用户输入在输出时都要按上下文转义,而不是只过滤关键词。"
+      ],
+      "see_also": [
+        "cors",
+        "storage",
+        "http-https"
+      ]
+    },
+    {
+      "id": "site-security",
+      "question": "网站安全防护有哪些基础措施?",
+      "aliases": [
+        "网站安全防护",
+        "怎么防止网站被入侵",
+        "怎样防止网站被入侵",
+        "网站被入侵怎么办",
+        "网站安全"
+      ],
+      "keywords": [
+        "入侵",
+        "防护",
+        "安全防护",
+        "加固",
+        "被黑"
+      ],
+      "answer": "网站安全是分层的,基础措施至少包括:全站 HTTPS;对所有输入做校验、所有输出按上下文转义(防 XSS);数据库访问用参数化查询(防 SQL 注入);鉴权与权限最小化,会话用 HttpOnly 加 Secure 的 Cookie;及时更新框架与依赖;保留日志并做异常监控;定期备份并验证能恢复。WAF 与安全扫描是补充,不能替代把代码写对。遇到真实入侵时,先隔离与取证,再修复,不要只删日志。",
+      "points": [
+        "防注入的核心是「数据不当代码」:参数化查询、按上下文转义。",
+        "入侵检测与备份恢复是底线能力,不是可选项。",
+        "发现被入侵先断网隔离、保留证据,再谈恢复。"
+      ],
+      "see_also": [
+        "web-security",
+        "cors",
+        "http-https"
+      ]
+    },
+    {
+      "id": "devtools",
+      "question": "怎么调试网页?",
+      "aliases": [
+        "怎么调试网页",
+        "调试网页",
+        "devtools怎么用",
+        "浏览器开发者工具",
+        "怎么打开控制台"
+      ],
+      "keywords": [
+        "调试",
+        "devtools",
+        "控制台",
+        "断点",
+        "network"
+      ],
+      "answer": "浏览器 DevTools 是最直接的入口:Elements 看和改 DOM 与样式,Console 看报错和执行表达式,Network 看请求、状态码、耗时与响应,Sources 打断点,Performance 看渲染与主线程,Application 看存储与 Cookie。调试顺序通常是:先看 Console 报错定位,再看 Network 确认请求,最后用断点或 Performance 找逻辑与性能问题。",
+      "points": [
+        "报错先读第一行和堆栈最上面那一层,往往就是根因位置。",
+        "改完样式或 DOM 只是浏览器里的临时状态,记得回到源码改。"
+      ],
+      "see_also": [
+        "browser-render",
+        "web-perf"
+      ]
+    }
+  ],
+  "safety": {
+    "refuse": [
+      {
+        "id": "self-harm-method",
+        "label": "自伤方法请求",
+        "patterns": [
+          "(自杀|自残|轻生).{0,8}(方法|方式|步骤|途径|工具|手段|实施|动手)",
+          "(怎么|如何|教我|告诉).{0,6}(自杀|自残|轻生)"
+        ],
+        "unless": [],
+        "reason": "提供自伤方法可能直接造成伤害",
+        "advice": [
+          "我不会提供任何自伤的方式、步骤或工具信息。",
+          "如果你正处在危险中,请立刻联系当地的紧急服务,或告诉一个你信任的人,让对方陪着你。",
+          "如果你想帮助别人,可以问「怎样识别身边人的自伤风险」这类问题。"
+        ]
+      },
+      {
+        "id": "weapon-making",
+        "label": "危险物制作",
+        "patterns": [
+          "(制作|制造|组装|自制|教我).{0,10}(炸弹|爆炸物|枪支|毒品|毒药)"
+        ],
+        "unless": [
+          "防止|防范|法规|法律|查处"
+        ],
+        "reason": "提供制造方法可能造成严重伤害",
+        "advice": [
+          "这类制作方法不在可回答范围内。",
+          "如果出于安全防护或法规合规的疑问,可以问相关防护与法律问题。"
+        ]
+      },
+      {
+        "id": "credentials",
+        "label": "凭据与隐私索取",
+        "patterns": [
+          "(把|将)?(密码|身份证号|银行卡号).{0,8}(告诉|发给|给我|发我)",
+          "(怎么|如何).{0,6}(盗取|拿到|查)(别人|他人).{0,6}(密码|账号|身份证|住址)"
+        ],
+        "unless": [],
+        "reason": "索取或盗取他人凭据可能被用于侵害",
+        "advice": [
+          "我不会提供获取他人账号、密码、身份证、住址的方法。",
+          "如果是找回自己的账号,请走服务方的官方找回流程。"
+        ]
+      },
+      {
+        "id": "unauthorized-intrusion",
+        "label": "未授权入侵",
+        "patterns": [
+          "(入侵|破解|黑进|渗透|绕过).{0,10}(网站|服务器|系统|后台|账户|路由器)",
+          "(怎么|如何|教我|帮我).{0,8}(入侵|破解|黑进|盗号)"
+        ],
+        "unless": [
+          "防止|防范|防护|防御|合规|授权|渗透测试|安全评估"
+        ],
+        "reason": "未经授权入侵他人系统既违法也有害",
+        "advice": [
+          "未授权入侵、破解他人系统的具体做法不回答。",
+          "如果是在做安全防护,可以问「XSS 和 CSRF 怎么防」这类防御性问题。"
+        ]
+      },
+      {
+        "id": "phishing-page",
+        "label": "钓鱼与仿冒页面",
+        "patterns": [
+          "(钓鱼|仿冒|伪造).{0,8}(网站|页面|登录页|银行|后台)",
+          "(做|设计|生成|写).{0,6}(钓鱼|仿冒)"
+        ],
+        "unless": [
+          "识别|防范|案例|科普|检测"
+        ],
+        "reason": "仿冒页面会被用于诈骗",
+        "advice": [
+          "仿冒登录页、钓鱼页面的制作不回答。",
+          "识别与防范钓鱼可以问「怎么识别钓鱼网站」。"
+        ]
+      },
+      {
+        "id": "malware",
+        "label": "恶意程序",
+        "patterns": [
+          "(写|做|生成|制作).{0,10}(病毒|木马|勒索软件|恶意程序|挖矿脚本)"
+        ],
+        "unless": [
+          "防范|查杀|识别|分析"
+        ],
+        "reason": "恶意程序会伤害他人设备与数据",
+        "advice": [
+          "木马、勒索软件、挖矿脚本的编写不回答。",
+          "防御与查杀思路可以问「常见 Web 攻击怎么防」。"
+        ]
+      }
+    ],
+    "caution": [
+      {
+        "id": "self-harm-mention",
+        "label": "情绪高风险",
+        "patterns": [
+          "自杀|自残|轻生|不想活|活不下去"
+        ],
+        "unless": [],
+        "reason": "涉及自伤情绪表达",
+        "advice": [
+          "如果你或身边的人正处在危险里,请立刻联系当地紧急服务或信任的人;我只能提供一般信息,不能替代专业援助。"
+        ]
+      },
+      {
+        "id": "medical-advice",
+        "label": "医疗建议",
+        "patterns": [
+          "吃什么药",
+          "用什么药",
+          "剂量",
+          "帮我诊断",
+          "是不是得了"
+        ],
+        "unless": [],
+        "reason": "涉及诊断或用药",
+        "advice": [
+          "医疗问题请咨询医生或药师;我不能诊断、开药或给出剂量。"
+        ]
+      },
+      {
+        "id": "legal-advice",
+        "label": "法律建议",
+        "patterns": [
+          "违法吗",
+          "会不会坐牢",
+          "法律责任",
+          "起诉"
+        ],
+        "unless": [],
+        "reason": "涉及具体法律判断",
+        "advice": [
+          "具体法律问题请咨询律师;我只能做一般性的信息与伦理讨论。"
+        ]
+      },
+      {
+        "id": "production-change",
+        "label": "生产环境操作",
+        "patterns": [
+          "生产环境",
+          "线上库",
+          "删库",
+          "rm -rf"
+        ],
+        "unless": [],
+        "reason": "涉及高风险的生产改动",
+        "advice": [
+          "改动生产环境前先备份、在测试环境验证,并确认回滚方案。"
+        ]
+      },
+      {
+        "id": "others-privacy",
+        "label": "他人隐私",
+        "patterns": [
+          "别人的(手机号|身份证|住址|聊天记录|密码)",
+          "人肉搜索"
+        ],
+        "unless": [],
+        "reason": "涉及他人个人信息",
+        "advice": [
+          "处理他人个人信息要遵守知情同意与最小必要原则;我不能帮助获取或传播他人隐私。"
+        ]
+      }
+    ]
+  }
+}

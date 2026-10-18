@@ -1,0 +1,12 @@
+{
+  "_readme": [
+    "故意写坏的一份配置:测试用。max_packs 超范围、context.enabled 不是布尔、max_turns 太小。",
+    "settings.load() 应该退回默认值,并把原因写进 notes(不抛异常)。"
+  ],
+  "max_packs": 99,
+  "context": {
+    "enabled": "yes",
+    "max_turns": 0,
+    "max_keywords": 500
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "_readme": [
+    "测试用:记忆数据包的空壳种子。lessons.teach 会往 entries 里追加。"
+  ],
+  "expert": {
+    "id": "memory",
+    "name": "你教我的记忆",
+    "role": "memory",
+    "order": 900,
+    "tagline": "测试用记忆包",
+    "scope": [
+      "记忆"
+    ],
+    "limits": [
+      "测试用"
+    ]
+  },
+  "entries": [],
+  "safety": {
+    "refuse": [],
+    "caution": []
+  }
+}

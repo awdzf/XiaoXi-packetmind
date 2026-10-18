@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "如果小析对你的工作有帮助，可按下列信息引用。"
+title: "小析：一个离线的、可审计的本地知识应答器"
+abstract: "一个人格 + 若干可拆装数据包；规则、BM25、分层检索与小型 Datalog 推理；不调用模型、不联网，答案逐条可追溯。"
+type: software
+version: "1.0.0"
+date-released: "2026-10-18"
+license: MIT
+authors:
+  - name: "小析 contributors"
+repository-code: "https://github.com/awdzf/XiaoXi-packetmind"
+keywords:
+  - offline
+  - retrieval
+  - bm25
+  - datalog
+  - personal-knowledge
+  - python

@@ -1,0 +1,24 @@
+{
+  "_readme": ["测试用数据包:苹果。它被 fruit 包含(contained_by),用来测反向命中 + 再命中。"],
+  "expert": {
+    "id": "apple",
+    "name": "苹果",
+    "tagline": "测试用:苹果这一小块知识",
+    "scope": ["苹果", "红富士"],
+    "contained_by": ["fruit"],
+    "limits": ["测试用"],
+    "siblings": []
+  },
+  "entries": [
+    {
+      "id": "apple-what",
+      "question": "苹果是什么?",
+      "aliases": ["苹果是啥", "什么是苹果"],
+      "keywords": ["苹果", "水果", "红色"],
+      "answer": "苹果是一种水果,通常是红色或绿色,可以生吃。",
+      "points": ["苹果是水果的一种。"],
+      "see_also": []
+    }
+  ],
+  "safety": { "refuse": [], "caution": [] }
+}
