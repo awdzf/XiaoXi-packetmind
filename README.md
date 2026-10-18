@@ -1,4 +1,4 @@
-必看声明：这是一个完全由AI完成的项目（除了这个必看声明）。由于我不是开发者，甚至完全不懂代码，所以里面的代码内容完全没有经过人工审核。后面该仓库大概率是不会有维护和更新
+必看声明：这是一个完全由AI完成的项目（包括小析这个名字）。由于我不是开发者，甚至完全不懂代码，所以里面的代码内容完全没有经过人工审核。后面该仓库大概率是不会有维护和更新
 # 小析:一个不靠大模型的离线的本地知识问答系统
 
 > 版本 **1.0.0** · MIT · 发布说明见 [RELEASE.md](RELEASE.md) / [CHANGELOG.md](CHANGELOG.md)。
@@ -38,7 +38,7 @@
 ## 目录
 
 ```
-/
+/xiaoxi-1.0.0
 ├── xiaoxi.py                根目录启动器(等价于 experts/GoChat.py)
 ├── VERSION / LICENSE / CHANGELOG.md / CITATION.cff
 ├── SECURITY.md / PRIVACY.md / CONTRIBUTING.md / RELEASE.md
