@@ -38,4 +38,4 @@
 
 - MIT 许可证；`CITATION.cff`；`VERSION`。
 - `tools/build_release.py` 生成 `dist/xiaoxi-1.0.0/` 与 `.zip`，构建后会在干净副本上跑全量测试。
-- 发布包不包含用户记忆、漏问日志、`__pycache__`、`.dsh`。
+- 发布包不包含用户记忆、漏问日志、`__pycache__`、本地运行缓存。
