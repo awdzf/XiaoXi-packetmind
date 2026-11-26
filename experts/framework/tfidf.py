@@ -19,6 +19,11 @@
       单字只用于整段就是单字的情况），ASCII 按词边界切；IDF 会把高频项压下去；
     · 语料就是几十到几百条问法，纯 Python 的稀疏点积足够快。
 
+切词前先走 `decomposer.normalize`（NFKC + 繁简折叠 + 去不可见字符），
+所以文档和查询看到的是同一套字面：`ＨＴＭＬ`、`電場`、夹着零宽空格的
+「引力波」都会落到同一个词项上。ASCII 带数字后缀的词再补一个词干
+（`html5` -> `html`），版本号不会把主词掩掉。
+
 它不保存索引文件：每次装配 Router 时在内存里建一次，随数据包增删自动重建。
 """
 
@@ -40,6 +45,8 @@ MIN_COSINE = 0.35
 DEFAULT_LIMIT = 5
 
 _ASCII_RE = re.compile(r"[A-Za-z0-9][A-Za-z0-9_+#.-]{1,31}")
+#: 「词干 + 数字后缀」:`html5` / `utf8` / `jvm2`。版本号是修饰,主词才是内容
+_ASCII_STEM = re.compile(r"([a-z][a-z+#]*)([0-9]+)")
 _CJK_RUN = re.compile(r"[\u4e00-\u9fff]+")
 
 #: ASCII 停用词（不参与向量）
@@ -86,15 +93,50 @@ class SimilarHit:
     score: float
 
 
+#: 功能词(两字及以上)。**分词项时它自己不算**,而且横跨它的两字组合也不算:
+#: 「回滚怎么做」里 `么做` 是"怎么"的尾巴,不是内容词;不挡住的话,一句
+#: 「回滚怎么做」会被拆成 3 个词项、只命中 1 个,覆盖率被稀释成 1/3。
+#: 这里刻意**不含**可以当词根的泛问词(关系 / 定义 / 方法 / 说明 / 问题 …):
+#: 「关系型数据库」「定义域」「问题域」都要靠它们。
+_SPAN_STOP_WORDS: frozenset[str] = frozenset({
+    "什么", "怎么", "怎样", "如何", "为什么", "为何", "是否", "哪些", "哪个",
+    "多少", "可以", "能否", "以及", "如果", "那么", "因为", "所以", "但是",
+    "而且", "或者", "就是", "不是", "需要", "时候", "我们", "你们", "他们",
+    "她们", "它们", "这个", "那个", "这些", "那些", "一个", "进行", "通过",
+    "用于", "对于", "关于", "根据", "由于", "因此", "并且", "同时", "已经",
+    "正在", "可能", "应该", "必须", "能够", "得到", "提供", "支持", "包括",
+    "例如", "比如", "注意", "重要", "主要", "一般", "通常", "常见", "相关",
+    "如下", "以上", "以下", "第一", "第二", "第三", "这里", "那里", "以及",
+    "使用", "然后", "这样", "那样", "其中",
+})
+
+
+def _stop_spans(run: str) -> set[int]:
+    """一段中文里被功能词占住的字符位置(2/3 字的功能词都算)。"""
+    spans: set[int] = set()
+    for size in (2, 3):
+        for start in range(len(run) - size + 1):
+            if run[start:start + size] in _SPAN_STOP_WORDS:
+                spans.update(range(start, start + size))
+    return spans
+
+
 def tokenize(text: str) -> list[str]:
-    """切词项：ASCII 词 + 中文单字 + 中文两字组合（跳过停用项）。"""
+    """切词项:ASCII 词 + 中文单字 + 中文两字组合（跳过停用项）。"""
     lowered = normalize(text or "").lower()
     tokens: list[str] = []
 
     for match in _ASCII_RE.finditer(lowered):
         word = match.group(0).strip(".-")
-        if len(word) >= 2 and word not in _ASCII_STOP:
-            tokens.append("w:" + word)
+        if len(word) < 2 or word in _ASCII_STOP:
+            continue
+        tokens.append("w:" + word)
+        # 带数字后缀的词再补一个词干(html5 -> html),版本号不该把主词掩掉
+        stem = _ASCII_STEM.fullmatch(word)
+        if stem is not None:
+            base = stem.group(1)
+            if len(base) >= 2 and base not in _ASCII_STOP:
+                tokens.append("w:" + base)
 
     for match in _CJK_RUN.finditer(lowered):
         run = match.group(0)
@@ -104,13 +146,17 @@ def tokenize(text: str) -> list[str]:
             if run not in _STOP_CHARS:
                 tokens.append("u:" + run)
             continue
+        blocked = _stop_spans(run)
         for index in range(len(run) - 1):
             bigram = run[index:index + 2]
             # 跨"实词 + 虚词"的两字组合（如"场是"）不携带内容信息，丢掉；
             # 否则"电场是什么"会和"向量场是什么"共享一个"场是"，被误判成相似。
+            # 同理，横跨功能词的组合（「怎么」的 `么做`）也不算内容。
             if (bigram not in _STOP_BIGRAMS
                     and bigram[0] not in _STOP_CHARS
-                    and bigram[1] not in _STOP_CHARS):
+                    and bigram[1] not in _STOP_CHARS
+                    and index not in blocked
+                    and index + 1 not in blocked):
                 tokens.append("b:" + bigram)
     return tokens
 

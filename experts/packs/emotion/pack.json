@@ -283,6 +283,16 @@
         "burnout",
         "anxiety",
         "emotion-regulation"
+      ],
+      "not_about": [
+        "水管",
+        "水压",
+        "气压",
+        "血压",
+        "帕斯卡",
+        "千帕",
+        "兆帕",
+        "液压"
       ]
     },
     {
@@ -471,6 +481,15 @@
         "nvc",
         "boundaries",
         "attachment"
+      ],
+      "not_about": [
+        "git",
+        "合并冲突",
+        "分支冲突",
+        "代码冲突",
+        "版本冲突",
+        "哈希",
+        "hashmap"
       ]
     },
     {

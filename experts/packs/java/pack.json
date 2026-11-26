@@ -104,6 +104,12 @@
       "不联网:不查最新版本文档与支持截止日期",
       "不代替人做架构决策与代码评审",
       "只答基础概念:具体报错排查与性能调优请给出现场信息"
+    ],
+    "not_about": [
+      "java 岛",
+      "java岛",
+      "爪哇岛",
+      "印度尼西亚"
     ]
   },
   "entries": [
@@ -239,6 +245,16 @@
         "class-object",
         "interface-abstract",
         "overload-override"
+      ],
+      "not_about": [
+        "继承权",
+        "遗产",
+        "遗嘱",
+        "房产",
+        "房子",
+        "父母",
+        "法定继承",
+        "继承税"
       ]
     },
     {
@@ -264,6 +280,12 @@
         "oop",
         "interface-abstract",
         "primitives"
+      ],
+      "not_about": [
+        "类选择器",
+        "选择器",
+        "样式表",
+        "css 类"
       ]
     },
     {
@@ -291,6 +313,20 @@
         "oop",
         "overload-override",
         "java-what"
+      ],
+      "not_about": [
+        "usb",
+        "type-c",
+        "typec",
+        "hdmi",
+        "网线",
+        "插头",
+        "插座",
+        "显卡",
+        "电源接口",
+        "充电口",
+        "耳机孔",
+        "数据线"
       ]
     },
     {
@@ -398,6 +434,12 @@
         "hashmap",
         "equals",
         "generics"
+      ],
+      "not_about": [
+        "集合点",
+        "集合地点",
+        "集合时间",
+        "几点集合"
       ]
     },
     {
@@ -407,13 +449,17 @@
         "hashmap原理",
         "hashmap是什么",
         "hashmap怎么实现的",
-        "hashmap线程安全吗"
+        "hashmap线程安全吗",
+        "哈希冲突怎么处理",
+        "哈希碰撞怎么处理"
       ],
       "keywords": [
         "hashmap",
         "哈希",
         "扩容",
-        "红黑树"
+        "红黑树",
+        "哈希冲突",
+        "哈希碰撞"
       ],
       "answer": "HashMap 用「数组 + 链表/红黑树」存键值对:先对键的 hashCode 做扰动并取模定位桶,桶里链表长度超过阈值(默认 8)且容量足够时转红黑树;元素数超过容量乘负载因子(默认 0.75)就扩容为两倍并重新分配。它非线程安全,并发修改可能导致数据不一致;并发场景用 ConcurrentHashMap。",
       "points": [
@@ -424,6 +470,13 @@
       "see_also": [
         "equals",
         "collections"
+      ],
+      "not_about": [
+        "加密",
+        "数字签名",
+        "摘要算法",
+        "md5",
+        "sha"
       ]
     },
     {
@@ -450,6 +503,13 @@
       "see_also": [
         "compile-run",
         "java-what"
+      ],
+      "not_about": [
+        "天气",
+        "气温",
+        "体温",
+        "气候",
+        "气象"
       ]
     },
     {
@@ -502,6 +562,12 @@
       "see_also": [
         "jvm",
         "thread"
+      ],
+      "not_about": [
+        "浏览器",
+        "v8",
+        "node.js",
+        "前端"
       ]
     },
     {
@@ -585,6 +651,12 @@
       "see_also": [
         "maven",
         "java-what"
+      ],
+      "not_about": [
+        "春天",
+        "春季",
+        "季节",
+        "春暖"
       ]
     },
     {

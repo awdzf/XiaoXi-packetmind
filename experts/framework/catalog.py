@@ -73,6 +73,9 @@ class ExpertCard:
     datalog: dict = field(default_factory=dict)
     #: 包级优先级（World Info 式：数字越大越先进入预算；默认 100）
     priority: int = DEFAULT_ORDER
+    #: 读包时"能修但修过"的问题(例如 entries 里有几条不是对象,已跳过);
+    #: 由 discover() 汇进 DISCOVERY_ERRORS,启动时如实打印。
+    warnings: tuple[str, ...] = ()
 
     @property
     def has_structure(self) -> bool:
@@ -130,11 +133,35 @@ def _cached_card(path: Path) -> ExpertCard:
     routes = tuple(r for r in expert.get("routes") or () if isinstance(r, dict))
     contains = tuple(str(x) for x in expert.get("contains") or () if str(x).strip())
     contained_by = tuple(str(x) for x in expert.get("contained_by") or () if str(x).strip())
+    #: 包级"不适用词"：这个词出现时，整个包讲的都是另一个意思
+    #: （例如 java 包的 `java 岛`）。并进每条条目的 `not_about`，
+    #: 这样闸门只有一条判据，不必区分"包级"和"条目级"两套规则。
+    pack_not_about = tuple(
+        str(x) for x in expert.get("not_about") or () if str(x).strip()
+    )
     facts = tuple(x for x in raw.get("facts") or () if isinstance(x, dict))
     rules = tuple(x for x in raw.get("rules") or () if isinstance(x, dict))
     relations = tuple(x for x in raw.get("relations") or () if isinstance(x, dict))
     datalog_raw = raw.get("datalog")
     datalog = datalog_raw if isinstance(datalog_raw, dict) else {}
+    # entries 以前直接 tuple(...) 收下:只要有人手改 pack.json 时写错一条
+    # (`"entries": ["一句话", 42]`),discover 认为包是好的,装配流水线时才
+    # 在 `entry.get(...)` 上抛 AttributeError —— 整个应用启动即崩。
+    # 这里和 facts/rules/relations 同一口径:只留 dict,跳过几条就记几条。
+    entries_raw = raw.get("entries") or ()
+    if not isinstance(entries_raw, (list, tuple)):
+        raise ValueError("entries 不是数组")
+    entries = tuple(item for item in entries_raw if isinstance(item, dict))
+    dropped = len(entries_raw) - len(entries)
+    warnings = ()
+    if dropped:
+        warnings = (f"{folder}:entries 里有 {dropped} 条不是对象,已跳过",)
+    if pack_not_about:
+        merged: list[dict] = []
+        for item in entries:
+            own = [str(x) for x in item.get("not_about") or () if str(x).strip()]
+            merged.append({**item, "not_about": own + list(pack_not_about)})
+        entries = tuple(merged)
     try:
         priority = int(expert.get("priority", DEFAULT_ORDER))
     except (TypeError, ValueError):
@@ -146,7 +173,7 @@ def _cached_card(path: Path) -> ExpertCard:
         name=str(expert.get("name") or folder),
         tagline=str(expert.get("tagline") or ""),
         scope=tuple(str(t) for t in expert.get("scope") or ()),
-        entries=tuple(raw.get("entries") or ()),
+        entries=entries,
         pack_path=path,
         role=role,
         order=order,
@@ -158,6 +185,7 @@ def _cached_card(path: Path) -> ExpertCard:
         relations=relations,
         datalog=datalog,
         priority=priority,
+        warnings=warnings,
     )
     _CARD_CACHE[path] = (stat.st_mtime_ns, stat.st_size, card)
     return card
@@ -177,10 +205,13 @@ def discover(root: Path = ROOT) -> tuple[ExpertCard, ...]:
     for path in sorted(root.glob(PACK_GLOB)):
         folder = path.parent.name
         try:
-            cards.append(_cached_card(path))
+            card = _cached_card(path)
         except (OSError, json.JSONDecodeError, ValueError, TypeError, AttributeError) as exc:
             _CARD_CACHE.pop(path, None)
             errors.append(f"{folder}:数据包读取失败({exc})")
+            continue
+        cards.append(card)
+        errors.extend(card.warnings)
 
     # 领域包在前(按 order、再按文件夹),兜底包永远最后
     cards.sort(key=lambda c: (1 if c.is_general else 0, c.order, c.folder))

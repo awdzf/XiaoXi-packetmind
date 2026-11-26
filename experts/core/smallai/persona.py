@@ -220,6 +220,9 @@ _DEFINITION_RE = re.compile(
 _RELATION_RE = re.compile(
     r"(?P<left>.+?)(?:和|与|跟)(?P<right>.+?)(?:的)?(?:区别|关系|不同|联系|异同)"
 )
+#: "A 和 B 有什么区别" 里，右半边会连"有什么"一起被抓住：
+#: `Type-C 接口有什么区别` -> right="Type-C 接口有什么"。问法里不该带这半句。
+_QUESTION_TAIL_RE = re.compile(r"(?:到底|究竟)?(?:有什么|有哪些|是什么|有什么用|是)$")
 _HOW_RE = re.compile(
     r"^(?:(?P<topic>.+?)(?:怎么|如何|怎样)|(?:怎么|如何|怎样)(?P<after>.+))"
 )
@@ -244,6 +247,9 @@ def teach_question(text: str = "", keywords: tuple[str, ...] | list[str] = ()) -
     if relation:
         left = relation.group("left").strip("的 ")
         right = relation.group("right").strip("的 ")
+        # "USB 接口和 Type-C 接口有什么区别" 的右半边会带上"有什么"，剥掉再问
+        left = _QUESTION_TAIL_RE.sub("", left).strip("的 ")
+        right = _QUESTION_TAIL_RE.sub("", right).strip("的 ")
         if left and right:
             return f"你能告诉我「{left}」和「{right}」最关键的区别/关系是什么吗?"
 

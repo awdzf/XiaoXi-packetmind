@@ -105,6 +105,10 @@
       "不联网:不查最新文档、不核对浏览器兼容性数据",
       "不代替人做设计决策与验收(好不好看只有人能说)",
       "只答基础概念:版本细节与具体报错排查请查官方文档"
+    ],
+    "not_about": [
+      "垃圾回收",
+      "gc 算法"
     ]
   },
   "entries": [
@@ -419,7 +423,10 @@
         "cookie",
         "localstorage",
         "sessionstorage",
-        "存储"
+        "存储",
+        "存储空间",
+        "占空间",
+        "容量"
       ],
       "answer": "三者都存浏览器端数据,生命周期与用途不同:Cookie 会随同源请求自动发送,容量约 4KB,常用于会话标识;localStorage 容量约 5 到 10MB,不随请求发送,除非主动清除否则一直在;sessionStorage 同样不随请求发送,但关闭标签页就清空。敏感凭据不建议放 localStorage(容易被 XSS 读走),会话更适合 HttpOnly Cookie。",
       "points": [
@@ -567,6 +574,12 @@
         "color-contrast",
         "typography",
         "responsive"
+      ],
+      "not_about": [
+        "矢量图",
+        "位图",
+        "像素图",
+        "svg"
       ]
     },
     {
@@ -675,6 +688,16 @@
         "http-https",
         "spa-ssr",
         "dom-what"
+      ],
+      "not_about": [
+        "工资",
+        "薪资",
+        "招聘",
+        "面试",
+        "月薪",
+        "年薪",
+        "待遇",
+        "转行"
       ]
     },
     {

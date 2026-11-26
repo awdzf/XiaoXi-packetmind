@@ -23,7 +23,7 @@
     print(result.summary)
 """
 
-__version__ = "1.0.0"
+__version__ = "1.0.3"
 
 from . import (
     budget,
@@ -36,6 +36,8 @@ from . import (
     learning,
     lessons,
     memory,
+    fuzzy,
+    docs,
     retrieval,
     safety,
     settings,
@@ -51,7 +53,16 @@ from .catalog import (
     general_card,
     persona,
 )
-from .decomposer import Candidate, Decomposition, Decomposer, keywords_of, normalize
+from .decomposer import (
+    Candidate,
+    Decomposition,
+    Decomposer,
+    TRADITIONAL,
+    keywords_of,
+    normalize,
+    related_char,
+)
+from .docs import DocAnswer, DocLibrary, DocRef, parse_reference
 from .memory import ConversationMemory, Turn, is_followup
 from .pipeline import ChatResult, GoChat
 from .planner import BoundedPlanner, PlanResult
@@ -96,6 +107,14 @@ __all__ = [
     "Decomposer",
     "keywords_of",
     "normalize",
+    "related_char",
+    "TRADITIONAL",
+    "fuzzy",
+    "docs",
+    "DocAnswer",
+    "DocLibrary",
+    "DocRef",
+    "parse_reference",
     "ConversationMemory",
     "Turn",
     "is_followup",

@@ -1,0 +1,48 @@
+# 同词异义测试集（v3a）：关键词和旧题一样，句子意思不一样。
+# 四组：
+#   sameword-homonym  同词异义 —— 生活里那个词，不是学科里那个词（应弃权）
+#   sameword-offtopic 同词异题 —— 学科词没错，但问的方面包里没有（应弃权）
+#   sameword-other    同词换条 —— 同一个词，正确答案是另一条/另一个包（应命中）
+#   sameword-otherref 同词异指 —— 同一个词指具体的事物/地点（应弃权）
+{"id": "sw-a01", "question": "积分商城怎么兑换礼品", "category": "sameword-homonym", "must_abstain": true, "shares_vocab_with": "math/integral", "why_abstain": "「积分」在句子里是消费积分，不是数学积分"}
+{"id": "sw-a02", "question": "极限运动有哪些危险", "category": "sameword-homonym", "must_abstain": true, "shares_vocab_with": "math/limit", "why_abstain": "「极限」是极限运动，不是数学极限"}
+{"id": "sw-a03", "question": "矩阵式组织架构怎么设计", "category": "sameword-homonym", "must_abstain": true, "shares_vocab_with": "math/matrix", "why_abstain": "「矩阵」是管理结构，不是数学矩阵"}
+{"id": "sw-a04", "question": "微信群里怎么发公告", "category": "sameword-homonym", "must_abstain": true, "shares_vocab_with": "math/group", "why_abstain": "「群」是聊天群，不是数学的群"}
+{"id": "sw-a05", "question": "USB 接口和 Type-C 接口有什么区别", "category": "sameword-homonym", "must_abstain": true, "shares_vocab_with": "java/interface-abstract", "why_abstain": "「接口」是硬件接口，不是 Java 的 interface"}
+{"id": "sw-a06", "question": "继承父母的房子要交多少税", "category": "sameword-homonym", "must_abstain": true, "shares_vocab_with": "java/oop", "why_abstain": "「继承」是财产继承，不是面向对象的继承"}
+{"id": "sw-a07", "question": "天气预报里的异常升温是什么原因", "category": "sameword-homonym", "must_abstain": true, "shares_vocab_with": "java/exception", "why_abstain": "「异常」是天气异常，不是程序异常"}
+{"id": "sw-a08", "question": "水管里的压力怎么测量", "category": "sameword-homonym", "must_abstain": true, "shares_vocab_with": "emotion/stress", "why_abstain": "「压力」是流体压力，不是心理压力"}
+{"id": "sw-a09", "question": "Git 合并冲突怎么解决", "category": "sameword-homonym", "must_abstain": true, "shares_vocab_with": "emotion/conflict", "why_abstain": "「冲突」是代码合并冲突，不是人际冲突"}
+{"id": "sw-a10", "question": "怎么证明我的居住地址", "category": "sameword-homonym", "must_abstain": true, "shares_vocab_with": "math/proof", "why_abstain": "「证明」是出示证明材料，不是数学证明"}
+{"id": "sw-a11", "question": "矢量图是什么格式", "category": "sameword-homonym", "must_abstain": true, "shares_vocab_with": "math/vector", "why_abstain": "「矢量」是矢量图，不是数学向量"}
+{"id": "sw-a12", "question": "CSS 里的类选择器怎么用", "category": "sameword-homonym", "must_abstain": true, "shares_vocab_with": "java/class-object", "why_abstain": "「类」是 CSS 类选择器，不是编程里的 class"}
+{"id": "sw-b01", "question": "导数在经济学里有什么应用", "category": "sameword-offtopic", "must_abstain": true, "shares_vocab_with": "math/derivative", "why_abstain": "「导数」没错，但包里没有经济学应用这类内容"}
+{"id": "sw-b02", "question": "概率论在量化交易里怎么用", "category": "sameword-offtopic", "must_abstain": true, "shares_vocab_with": "math/probability", "why_abstain": "「概率」没错，但包里没有量化交易这类内容"}
+{"id": "sw-b03", "question": "拓扑结构在组网里怎么选", "category": "sameword-offtopic", "must_abstain": true, "shares_vocab_with": "math/topology", "why_abstain": "「拓扑」在组网里是网络拓扑，包里是拓扑学"}
+{"id": "sw-b04", "question": "哈希算法能用来加密吗", "category": "sameword-offtopic", "must_abstain": true, "shares_vocab_with": "java/hashmap", "why_abstain": "「哈希」没错，但包里只有 HashMap，没有加密用途"}
+{"id": "sw-b05", "question": "浏览器的垃圾回收是怎么做的", "category": "sameword-offtopic", "must_abstain": true, "shares_vocab_with": "java/gc", "why_abstain": "「垃圾回收」没错，但包里是 JVM 的 GC，不是浏览器的"}
+{"id": "sw-b06", "question": "熵和寿命有什么关系", "category": "sameword-offtopic", "must_abstain": true, "shares_vocab_with": "physics/entropy", "why_abstain": "「熵」没错，但包里没有熵与寿命这类内容"}
+{"id": "sw-b07", "question": "群论在密码学里怎么用", "category": "sameword-offtopic", "must_abstain": true, "shares_vocab_with": "math/group", "why_abstain": "「群论」没错，但包里没有密码学应用"}
+{"id": "sw-b08", "question": "相对论怎么用来做 GPS 定位", "category": "sameword-offtopic", "must_abstain": true, "shares_vocab_with": "physics/relativity", "why_abstain": "「相对论」没错，但包里没有 GPS 这类工程内容"}
+{"id": "sw-c01", "question": "浏览器是怎么把 DOM 树渲染成页面的", "folder": "web_dev", "entry": "browser-render", "category": "sameword-other"}
+{"id": "sw-c02", "question": "HashMap 的哈希冲突怎么处理", "folder": "java", "entry": "hashmap", "category": "sameword-other"}
+{"id": "sw-c03", "question": "不确定性原理里的位置和动量是什么关系", "folder": "physics", "entry": "heisenberg", "category": "sameword-other"}
+{"id": "sw-c04", "question": "正态分布和中心极限定理什么关系", "folder": "math", "entry": "distribution", "category": "sameword-other"}
+{"id": "sw-c05", "question": "统计推断里的 p 值怎么解释", "folder": "math", "entry": "statistical-inference", "category": "sameword-other"}
+{"id": "sw-c06", "question": "String 和 StringBuilder 谁更快", "folder": "java", "entry": "string-types", "category": "sameword-other"}
+{"id": "sw-c07", "question": "超导的迈斯纳效应是什么", "folder": "physics", "entry": "superconductivity", "category": "sameword-other"}
+{"id": "sw-c08", "question": "条件概率里的先验和后验怎么区分", "folder": "math", "entry": "conditional-probability", "category": "sameword-other"}
+{"id": "sw-c09", "question": "Java 的 List 和 Set 都属于集合框架吗", "folder": "java", "entry": "collections", "category": "sameword-other"}
+{"id": "sw-c10", "question": "AI 模型的偏见是从哪来的", "folder": "ethics", "entry": "bias", "category": "sameword-other"}
+{"id": "sw-c11", "question": "熵增原理说的是什么", "folder": "physics", "entry": "entropy", "category": "sameword-other"}
+{"id": "sw-c12", "question": "引力波是 LIGO 怎么测出来的", "folder": "physics", "entry": "gravitational-wave", "category": "sameword-other"}
+{"id": "sw-c13", "question": "多普勒效应的红移和蓝移怎么区分", "folder": "physics", "entry": "doppler", "category": "sameword-other"}
+{"id": "sw-c14", "question": "Cookie 和 localStorage 谁更占空间", "folder": "web_dev", "entry": "storage", "category": "sameword-other"}
+{"id": "sw-c15", "question": "WebSocket 和轮询有什么区别", "folder": "web_dev", "entry": "websocket", "category": "sameword-other"}
+{"id": "sw-c16", "question": "重载和重写分别在什么场景用", "folder": "java", "entry": "overload-override", "category": "sameword-other"}
+{"id": "sw-d01", "question": "Java 岛在哪儿", "category": "sameword-otherref", "must_abstain": true, "shares_vocab_with": "java/java-what", "why_abstain": "「Java」是爪哇岛，不是编程语言"}
+{"id": "sw-d02", "question": "Spring 春天穿什么衣服", "category": "sameword-otherref", "must_abstain": true, "shares_vocab_with": "java/spring", "why_abstain": "「Spring」是季节，不是 Java 框架"}
+{"id": "sw-d03", "question": "电车的电池怎么保养", "category": "sameword-otherref", "must_abstain": true, "shares_vocab_with": "ethics/trolley", "why_abstain": "「电车」是现实里的车，不是电车难题"}
+{"id": "sw-d04", "question": "前端开发工资多少", "category": "sameword-otherref", "must_abstain": true, "shares_vocab_with": "web_dev/frontend-backend", "why_abstain": "问的是薪资，包里没有这类内容"}
+{"id": "sw-d05", "question": "群聊里怎么发红包", "category": "sameword-otherref", "must_abstain": true, "shares_vocab_with": "math/group", "why_abstain": "「群」是聊天群"}
+{"id": "sw-d06", "question": "集合点定在哪里", "category": "sameword-otherref", "must_abstain": true, "shares_vocab_with": "math/set-theory", "why_abstain": "「集合」是碰头集合，不是集合论"}

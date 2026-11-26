@@ -3,13 +3,16 @@
 分工与边界:
   · **分解**(decomposer):切词 + 造候选(排列 / 谐音 / 错字);
   · **查找**(router):候选逐条尝试,哪个包里有对上的就查哪个(可多个);
+  · **文档模式**(docs):句尾写 `@文档名` / `@@相对路径` 时,**这一轮只读那一份
+    文档**,只引用原文并按章节/行号给出处,不查数据包(`docs.py`);
   · **知识**:**同一份核心代码**(`experts/core/smallai/`)+ 各自的数据包。
     默认走**单进程**(`corebridge.py`):核心只 import 一次,每个包按需装配流水线并
     缓存,文件没变就复用;单进程失败才退回子进程(`--subprocess` 可强制旧路径);
   · **总结**(summarizer):只引用答案原句,点明数据包与条目 id,不生成新知识。
 
 人格在这条链路之前:问"你是谁 / 你能做什么"由 `persona.py` 直接答,
-不查任何数据包(删光数据包,小析依然知道自己是谁)。
+不查任何数据包(删光数据包,小析依然知道自己是谁)。文档模式排在人格与
+规划器**之前**:用户既然点名"只按这份文档回答",就不该被别的路径劫持。
 
 知识是**可插拔**的:
   · 目录自动发现 `experts/packs/*/pack.json`,代码里没有名单;
@@ -33,6 +36,9 @@ from typing import Callable
 from . import budget as budget_mod
 from . import conflicts
 from . import corebridge
+from . import docs as docs_mod
+from . import evidence as evidence_mod
+from . import formula as formula_mod
 from . import lessons
 from . import safety as safety_rules
 from . import settings as settings_mod
@@ -109,6 +115,8 @@ class GoChat:
         packs_root=None,
         rehit_rounds: int | None = None,
         engine: str = "inprocess",
+        docs_root: str | os.PathLike[str] | None = None,
+        doc_library: docs_mod.DocLibrary | None = None,
     ) -> None:
         self.packs_root = packs_root          # 测试用:从别处发现数据包(教完才 reload)
         if cards is None:
@@ -137,6 +145,16 @@ class GoChat:
             trust=self.trust,
         )
         self.planner = BoundedPlanner(self.cards)
+        #: 证据闸门：候选生成之后、给出答案之前，问一句"这条证据够不够"。
+        #: 它只管一件事 —— 问题里的**实义词**有多少真的出现在这个条目的
+        #: question/aliases/keywords 里。阈值在 config.json 的 retrieval.min_coverage。
+        self.gate = evidence_mod.EvidenceGate.from_cards(
+            self.cards, threshold=self.config.retrieval.min_coverage
+        )
+        #: 文档模式:`docs/` 目录 + 读盘缓存 + 段内检索(`docs.py`)
+        self.docs = doc_library or docs_mod.DocLibrary(docs_root)
+        #: 上一轮的文档结果(测试与 `:docs` 之外的自省用;不参与回答)
+        self.last_document: docs_mod.DocAnswer | None = None
         #: "inprocess"(默认:核心常驻,按包缓存流水线)或 "subprocess"(旧路径,隔离优先)
         self.engine = "subprocess" if str(engine).lower().startswith("sub") else "inprocess"
         #: 单进程回退到子进程时留下的说明(不静默;`:stat` 会显示)
@@ -190,6 +208,24 @@ class GoChat:
             summary = summarize(text, decomposition, routing, [answer], safety,
                                 detail=detail, trace=trace, plain=plain)
             return ChatResult(text, decomposition, routing, [answer], summary, safety)
+
+        # 用户教的公式：`圆的面积:3` 这种"名字:值,值"在**任何检索之前**就判掉。
+        # 它不查数据包、不走闸门 —— 公式是用户自己定义的算法，不是知识条目；
+        # 代入与求值过程会原样写进答案，可以按计算器复核。
+        formula_result = self._formula_call(text, detail=detail, trace=trace, plain=plain,
+                                            safety=safety)
+        if formula_result is not None:
+            return formula_result
+
+        # 文档模式:句尾带 `@文档名` / `@@相对路径` 时,这一轮**只读那一份文档**。
+        # 排在人格与规划器之前:用户既然点名"只按这份文档回答",就不该被别的
+        # 路径劫持;也排在安全闸之后 —— 该拒的请求在读文档之前就拒掉。
+        doc_question, doc_ref = docs_mod.parse_reference(text)
+        if doc_ref is not None:
+            return self._ask_document(
+                text, doc_question, doc_ref,
+                detail=detail, trace=trace, plain=plain, safety=safety,
+            )
 
         # 人格自述:问"你是谁 / 你能做什么"由人格直接答,不查数据包。
         # 放在安全闸之后:该拒的先拒;放在分解之前:这两句没有可查的关键词。
@@ -253,6 +289,10 @@ class GoChat:
         # 上限之外的达标包:问用户要不要补查(同意只影响这一次;config 里的上限不变)
         routing = self._maybe_expand(routing, ask_user)
 
+        # 证据闸门(路由层):没证据的包不进"要查谁"的名单 —— 与答案层同一条判据。
+        # 放在 `_select_targets` 之前:摘空之后它会落到兜底包,走原来那条"没接住"的路。
+        routing = self._gate_targets(routing, text, decomposition, safety)
+
         targets = self._select_targets(routing, safety, text)
         if tuple(targets) != routing.targets:
             note = routing.notes + ";按角色筛选后:"
@@ -265,6 +305,16 @@ class GoChat:
             answers.append(answer)
             if target.card.is_memory:
                 answers.extend(self._memory_extras(target, text, answer))
+        answers, gate_note = self._gate_answers(text, answers, decomposition, safety,
+                                                routing)
+        if gate_note:
+            routing = Routing(
+                targets=routing.targets,
+                tried=routing.tried,
+                notes=routing.notes + ";" + gate_note,
+                dropped=routing.dropped,
+                rehits=routing.rehits,
+            )
         # 冲突：同一件事作者包与用户记忆都有说法时，按 trust.conflict_priority
         # 排序（默认作者包在前）；prefer 策略仍把低优先级列出来并注明。
         report = conflicts.resolve(answers, self.cards, self.trust)
@@ -313,13 +363,117 @@ class GoChat:
             budget_note=budget_note,
         )
 
+    # ---- 文档模式 --------------------------------------------------------
+    def _ask_document(
+        self,
+        text: str,
+        question: str,
+        reference: docs_mod.DocRef,
+        *,
+        detail: bool,
+        trace: bool,
+        plain: bool,
+        safety: dict,
+    ) -> ChatResult:
+        """`问题@文档名` / `问题@@相对路径`:只读这一份文档,只引用原文。
+
+        这一轮**不查任何数据包**:用户点名了只看那份文档,混进别的知识就不算
+        "只按这份文档回答"了。找不到/没命中/被安全底线挡掉都如实说明。
+        `detail=False`(`--brief`)时只引一段、引文更短。
+        """
+        answer = self.docs.answer(
+            question, reference, limit=docs_mod.MAX_HITS if detail else 1
+        )
+        self.last_document = answer
+        summary = docs_mod.render(
+            answer,
+            trace=bool(trace) or not plain,
+            budget=docs_mod.MAX_QUOTE_CHARS if detail else 700,
+        )
+        # 灰区提醒与普通回答保持一致:文档模式绕过了 summarize,得在这里补上
+        if str(safety.get("level")) == "caution":
+            advice = tuple(str(item) for item in safety.get("advice") or ())
+            caution = persona.caution_plain(advice)
+            if caution:
+                summary = caution + "\n\n" + summary
+        document = answer.document
+
+        decomposition = (
+            self.decomposer.decompose(question)
+            if question
+            else Decomposition(original=text, tokens=(), candidates=(),
+                               notes=("文档模式:只给文档不给问题,列目录",))
+        )
+        routing = Routing(
+            targets=(),
+            tried=0,
+            notes=(
+                "文档模式:只读 "
+                + (document.rel_path if document is not None else reference.text)
+                + "(这一轮没查数据包)"
+            ),
+        )
+        expert = ExpertAnswer(
+            folder=docs_mod.ROLE,
+            name=docs_mod.SOURCE_NOUN,
+            question=question or text,
+            text=docs_mod.quote_text(answer),
+            intent="document",
+            entry=document.rel_path if document is not None else None,
+            source="document",
+            safety_level=str(safety.get("level") or "ok"),
+            ok=answer.ok,
+            error=answer.error.message if answer.error is not None else None,
+            attempts=(text,),
+            role=docs_mod.ROLE,
+        )
+        return ChatResult(text, decomposition, routing, [expert], summary, safety)
+
+    def documents(self) -> tuple[docs_mod.DocSummary, ...]:
+        """`:docs` / `--docs` 用:目录里有哪些文档。"""
+        return self.docs.list()
+
+    def documents_text(self) -> str:
+        summaries = self.documents()
+        lines = [f"[文档] 目录:{self.docs.root}"]
+        if not self.docs.available:
+            lines.append(
+                f"  这个目录还不存在。在项目根(xiaoxi.py 所在目录)新建 "
+                f"{docs_mod.DOCS_DIRNAME}/,把 .md / .markdown / .txt 放进去。"
+            )
+            return "\n".join(lines)
+        if not summaries:
+            lines.append(
+                "  目录是空的(只认 " + " / ".join(docs_mod.SUPPORTED_SUFFIXES) + ")。"
+            )
+            return "\n".join(lines)
+        for item in summaries:
+            if item.error:
+                lines.append(f"  · {item.name}  —— 读不了:{item.error}")
+                continue
+            lines.append(
+                f"  · {item.name}  {item.rel_path} · {item.bytes} 字节 · "
+                f"{item.tokens} 字 · {item.chunks} 块 · 更新于 {item.modified}"
+            )
+        lines.append(
+            "  用法:问题@文档名(在 docs/ 里找)| 问题@@相对路径(相对 xiaoxi.py)"
+        )
+        return "\n".join(lines)
+
     def decompose(self, text: str) -> Decomposition:
         return self.decomposer.decompose(text)
 
     def route(self, text: str) -> tuple[Decomposition, Routing]:
+        """这句话会去查哪些包 —— 与 `ask()` 走**同一道**证据闸门。
+
+        不是"路由器把谁排上来了"（那是 `self.router.route` 的视角）：
+        留下的包就是**会用来作答的包**，否则 CLI 的 `:route` 与真实回答对不上。
+        """
+        text = (text or "").strip()
         decomposition = self.decomposer.decompose(text)
-        return decomposition, self.router.route(decomposition, max_targets=self.max_packs,
-                                                rehit_rounds=self.rehit_rounds)
+        routing = self.router.route(decomposition, max_targets=self.max_packs,
+                                    rehit_rounds=self.rehit_rounds)
+        return decomposition, self._gate_targets(routing, text, decomposition, self.guard(text))
 
     # ---- 可调开关(命令行 / 对话内都能改)--------------------------------
     def set_max_packs(self, value: int) -> int:
@@ -397,7 +551,9 @@ class GoChat:
     def teach(self, knowledge: str, keywords: tuple[str, ...] | list[str] = (),
               raw: str | None = None,
               secondary: tuple[str, ...] | list[str] = (),
-              answer: str | None = None) -> tuple[dict, bool]:
+              answer: str | None = None,
+              extra: dict | None = None,
+              aliases: tuple[str, ...] | list[str] = ()) -> tuple[dict, bool]:
         """把一条知识写进记忆数据包(不做确认;确认在终端里问)。
 
         `answer` 给了就是 Q&A 对（问题与答案分开存）；不给就沿用旧写法，
@@ -410,6 +566,7 @@ class GoChat:
             raise RuntimeError("没有记忆数据包(experts/packs/memory)")
         entry, created = lessons.teach(
             card, knowledge, keywords, raw=raw, secondary=secondary, answer=answer,
+            extra=extra, aliases=aliases,
         )
         self._invalidate_core(card)
         self.reload()
@@ -529,7 +686,7 @@ class GoChat:
             return routing
         names = "、".join(t.card.folder for t in routing.dropped)
         try:
-            answer = ask_user(f"能否再调用数据包[y/n]:{names}")
+            answer = ask_user(f"能否再调用数据包[y/n]: {names}")
         except (EOFError, KeyboardInterrupt):
             answer = "n"
         if not lessons.is_yes(str(answer)):
@@ -589,6 +746,339 @@ class GoChat:
                 )
             ]
         return []
+
+    #: 闸门认的"纠错类"候选。`base` 是词表的切分结果（"虚函数"被切成"函数"就是它），
+    #: 拿切口当证据，正好会把要修的那个错放回来；`full` 就是原句本身，没有新信息。
+    GATE_ALTERNATES = frozenset({"ascii_typo", "homophone", "perm"})
+
+    # ---- 用户教的公式与常数 ----------------------------------------------
+    def user_constants(self) -> dict[str, float]:
+        """记忆包里用户用 `# 名字=数值` 教过的常数（同名会盖住内置常数）。"""
+        values: dict[str, float] = {}
+        card = self.memory_card()
+        if card is None:
+            return values
+        for entry in card.entries:
+            parsed = formula_mod.UserConstant.from_dict(entry.get("constant") or {})
+            if parsed is not None:
+                values[parsed.name] = parsed.value
+        return values
+
+    def constant_entries(self) -> list[dict]:
+        card = self.memory_card()
+        if card is None:
+            return []
+        return [entry for entry in card.entries if isinstance(entry.get("constant"), dict)]
+
+    def teach_formula(self, taught: Any, raw: str | None = None) -> tuple[dict, bool]:
+        """把一条公式写进记忆包：带别名，所以在正常对话里也能被检索到。"""
+        keys = self.decomposer.decompose(taught.name).keywords
+        secondary = lessons.secondary_keywords(taught.name, keys, self.decomposer)
+        return self.teach(
+            taught.name, keys, raw=raw, secondary=secondary,
+            answer=formula_mod.entry_answer(taught, self.user_constants()),
+            extra={"formula": taught.as_dict()},
+            aliases=formula_mod.formula_aliases(taught.name),
+        )
+
+    def teach_constant(self, taught: Any, raw: str | None = None) -> tuple[dict, bool]:
+        """把一条用户常数写进记忆包（同样带别名）。"""
+        keys = self.decomposer.decompose(taught.name).keywords
+        secondary = lessons.secondary_keywords(taught.name, keys, self.decomposer)
+        return self.teach(
+            taught.name, keys, raw=raw, secondary=secondary,
+            answer=formula_mod.constant_answer(taught),
+            extra={"constant": taught.as_dict()},
+            aliases=formula_mod.constant_aliases(taught.name),
+        )
+
+    def formula_entries(self) -> list[dict]:
+        """记忆包里**带公式字段**的条目（`#?` 与调用都读它）。"""
+        card = self.memory_card()
+        if card is None:
+            return []
+        return [entry for entry in card.entries
+                if isinstance(entry.get("formula"), dict)]
+
+    def formula_by_name(self, name: str) -> tuple[Any, dict] | None:
+        """按名字找教过的公式（大小写、首尾空白不敏感）。"""
+        wanted = (name or "").strip().lower()
+        if not wanted:
+            return None
+        for entry in self.formula_entries():
+            parsed = formula_mod.Formula.from_dict(entry.get("formula") or {})
+            if parsed is not None and parsed.name.strip().lower() == wanted:
+                return parsed, entry
+        return None
+
+    def _formula_call(self, text: str, *, detail: bool, trace: bool, plain: bool,
+                      safety: dict) -> ChatResult | None:
+        """`名字:值,值` -> 一次公式计算；不是公式调用就返回 None，交回原来的流程。"""
+        call = formula_mod.parse_call(text)
+        if call is None:
+            return None
+        found = self.formula_by_name(call[0])
+        if found is None:
+            return None
+        parsed, entry = found
+        result = formula_mod.evaluate(parsed, call[1], self.user_constants())
+        entry_id = str(entry.get("id") or "")
+        if result.ok:
+            body = result.text
+            note = (f"[公式] {parsed.name} = {parsed.expr}（变量 {', '.join(parsed.vars)}）\n"
+                    if trace else "")
+            summary = (
+                f"{note}{body}\n\n—— 来自你教的公式「{parsed.name}」· 数据包 memory · 条目 {entry_id}"
+            )
+        else:
+            summary = (
+                f"{result.error}\n\n—— 这条公式是你教的（memory · 条目 {entry_id}），"
+                f"式子：{parsed.expr}"
+            )
+        answer = ExpertAnswer(
+            folder="memory",
+            name=persona.source("memory"),
+            question=text,
+            text=body if result.ok else result.error,
+            intent="formula",
+            entry=entry_id or None,
+            source="formula",
+            ok=result.ok,
+            attempts=(text,),
+            role="memory",
+        )
+        decomposition = Decomposition(original=text, tokens=(), candidates=(),
+                                      notes=(f"公式调用:{parsed.name}",))
+        routing = Routing(targets=(), tried=0,
+                          notes=f"用户教的公式:{parsed.name} = {parsed.expr}")
+        return ChatResult(text, decomposition, routing, [answer], summary, safety)
+
+    def _gate_targets(
+        self,
+        routing: Routing,
+        text: str,
+        decomposition: Decomposition,
+        safety: dict | None = None,
+    ) -> Routing:
+        """把"路由到了、但证据不够"的包在**路由层**就摘掉。
+
+        为什么这一层还要判一次（答案层已经判过）：`ask()` 和 `route()` 必须是
+        同一句话。以前只有答案层过闸门，于是 `--trace` 和评测的"路由层"仍然宣称
+        命中了 physics，用户看到的却是"没接住"——同一件事两套说法。
+        判据还是那一条（`EvidenceGate.assess`），这里只决定"留不留这个包"。
+
+        不设闸门的三种情况与答案层完全一致：闸门关闭、安全灰区/红线、记忆包。
+        """
+        if self.gate.disabled or not routing.targets:
+            return routing
+        if (safety or {}).get("level") in ("caution", "refuse"):
+            return routing
+        alternates = tuple(
+            str(getattr(item, "text", ""))
+            for item in getattr(decomposition, "candidates", ())
+            if str(getattr(item, "kind", "")) in self.GATE_ALTERNATES
+        )
+        kept: list[RouteTarget] = []
+        dropped: list[RouteTarget] = []
+        #: 兄弟条目：这一轮**别的包**会拿来作答的条目。一个问两样东西的问题
+        #: 可以一半由这个包答、另一半由那个包答；闸门要知道另一半确实有人答，
+        #: 否则「熵增和热寂是什么关系」就会拿"熵是什么"混过去。
+        for target in routing.targets:
+            card = target.card
+            #: 兄弟条目：这一轮**别的包**会（或按 max_packs 上限被截掉、但只要用户
+            #: 同意就会）拿来作答的条目。一个问两样东西的问题可以一半由这个包答、
+            #: 另一半由那个包答；闸门要知道另一半确实有人答，否则
+            #: 「熵增和热寂是什么关系」就会拿"熵是什么"混过去。
+            #: 被上限截掉的包也算：用户设了"只查一个包"，那是他的选择，
+            #: 不等于"另一半不存在"（他要的话下一轮就能补查）。
+            others = list(routing.targets) + list(routing.dropped)
+            siblings = tuple(
+                (other.card.folder, entry_id, other.card.entry(entry_id))
+                for other in others
+                if other.card.folder != card.folder
+                for entry_id in list(other.entry_ids)[:4]
+                if other.card.entry(entry_id) is not None
+            )
+            # 兜底包/记忆包没有"条目证据"这一说 —— 它们不是"把某条知识当答案"。
+            if card.is_general or card.is_memory:
+                kept.append(target)
+                continue
+            # 没有 entry_ids 的目标有两种：别的包按 routes **转交**过来的，
+            # 或者只命中了领域词、没挑出条目。两种都得有证据 —— 拿整包的条目判一次。
+            # 以前这类目标一律放行，于是数学包挡住了却把"积分"转交出去的 physics 留了下来。
+            entry_ids = tuple(target.entry_ids) or tuple(
+                str(entry.get("id") or "") for entry in card.entries
+            )
+            passed = any(
+                self.gate.assess(
+                    text, card.entry(entry_id),
+                    folder=card.folder, entry_id=entry_id, alternates=alternates,
+                    siblings=siblings,
+                ).ok
+                for entry_id in entry_ids
+                if card.entry(entry_id) is not None
+            )
+            if not passed:
+                # 同一包里"看着像另一条标准问法的错写"仍要留（引立波 → 引力波），
+                # 与 `_retry_typo_sibling` 同一条判据、同一种自律（同长度/只差一处/唯一最优）。
+                passed = any(
+                    self.gate._as_typo_of_question(text, entry) is not None
+                    for entry in card.entries
+                )
+            if passed:
+                kept.append(target)
+            else:
+                dropped.append(target)
+        if not dropped:
+            return routing
+        folders = {target.card.folder for target in kept}
+        rehits = tuple(
+            pair for pair in routing.rehits if pair[0] in folders and pair[1] in folders
+        )
+        note = (
+            routing.notes + ";证据闸门摘掉 "
+            + "、".join(target.card.folder for target in dropped)
+            + "(覆盖度不够,不拿它作答)"
+        )
+        return Routing(
+            targets=tuple(kept),
+            tried=routing.tried,
+            notes=note,
+            dropped=routing.dropped,
+            rehits=rehits,
+        )
+
+    def _gate_answers(
+        self,
+        text: str,
+        answers: list[ExpertAnswer],
+        decomposition: Decomposition,
+        safety: dict | None = None,
+        routing: Routing | None = None,
+    ) -> tuple[list[ExpertAnswer], str]:
+        """证据闸门：把"答得上、但证据不够"的答案翻成"没接住"。
+
+        为什么放在这一个点上：候选是模糊/同音/改写**想出来**的，它们的好坏只能拿
+        "这个条目自己写下的问题/别名/关键词"来核。所有路径（规则 / 混合检索 /
+        再命中 / 记忆）最后都汇到 `answers`，所以这里量一次就够 —— 不必在
+        路由层再分一套判据（那正是"同一件事两份实现"的老路）。
+
+        返回 (答案列表, 一句给 `--trace` 看的说明)。被挡下的答案不是悄悄消失：
+        `ok=False` + `error` 里写明覆盖度差多少，会走原来那条"没接住"的路
+        （包括那句"你能用一句话告诉我 X 是什么吗"）。
+        """
+        if self.gate.disabled:
+            return answers, ""
+        # 安全灰区/红线这一轮不设闸门：危机回应是"按对象选好的那一条"，
+        # 不是"从候选里猜出来的一条"。用证据覆盖度去否它，等于用检索的尺子
+        # 量安全的话 —— 「朋友不想活了怎么办」的覆盖度只有 0.27，但必须答。
+        if (safety or {}).get("level") in ("caution", "refuse"):
+            return answers, ""
+        alternates = tuple(
+            str(getattr(item, "text", ""))
+            for item in getattr(decomposition, "candidates", ())
+            if str(getattr(item, "kind", "")) in self.GATE_ALTERNATES
+        )
+        kept: list[ExpertAnswer] = []
+        blocked: list[str] = []
+        #: 这一轮别的答案能拿出来的条目：多句问题允许"各答一半"，
+        #: 但任何一半没有证据就必须弃权（见 `EvidenceGate.assess` 的 siblings）。
+        pool: list[tuple[str, str, dict]] = []
+        for item in answers:
+            if not item.ok or not item.entry:
+                continue
+            card = self._card(item.folder)
+            entry = card.entry(item.entry) if card is not None else None
+            if entry is not None:
+                pool.append((item.folder, item.entry, entry))
+        #: 还要算上"这一轮没查、但只要用户同意就会查"的包（max_packs 截掉的）：
+        #: 只查一个包是用户的选择，不等于问题另一半不存在。
+        if routing is not None:
+            for target in list(routing.targets) + list(routing.dropped):
+                for entry_id in list(target.entry_ids)[:4]:
+                    entry = target.card.entry(entry_id)
+                    if entry is not None:
+                        pool.append((target.card.folder, entry_id, entry))
+        for answer in answers:
+            if not answer.ok:
+                kept.append(answer)
+                continue
+            card = self._card(answer.folder)
+            entry = card.entry(answer.entry) if (card is not None and answer.entry) else None
+            siblings = tuple(
+                item for item in pool
+                if (item[0], item[1]) != (answer.folder, answer.entry or "")
+            )
+            # 自述/工具类回答（问候、帮助、天气模板、当前时间）**没有条目可核**，
+            # 它们不是"把某条知识当答案"，本来就不在闸门辖区 —— 「现在几点」不该被拦。
+            # 只对"没有条目"的回答放行：带条目的回答一律过闸门，不管 source 写的是什么。
+            if not answer.entry and answer.source in ("template", "persona"):
+                kept.append(answer)
+                continue
+            # 记忆包不设闸门：那些条目是用户当场教进去的，题目就是用户的原话。
+            # 拿"这个条目的问法像不像"去二审用户自己写下的知识，等于让他教了也白教。
+            if card is not None and card.is_memory:
+                answer.evidence = "记忆包:用户自己教的条目,不设闸门"
+                kept.append(answer)
+                continue
+            verdict = self.gate.assess(
+                text, entry,
+                folder=answer.folder, entry_id=answer.entry or "",
+                alternates=alternates, siblings=siblings,
+            )
+            if verdict.ok:
+                answer.evidence = verdict.reason + (
+                    f"(靠纠错候选「{verdict.via}」)" if verdict.via else ""
+                )
+                kept.append(answer)
+                continue
+            # 被挡下不等于放弃，但**只在一种情况下**换条目：用户其实是把同包里
+            # 另一条的**标准问法**写错了（同长度、只差一处、唯一最优）。
+            # 「引立波是什么」就是「引力波是什么」的错写，而它最先配到的是 gravity。
+            # 不放开成"挨个试到有一个能过"—— 那等于让闸门自己找证据，漂移就是这么来的：
+            # 试过一版，错误引用从 2 条涨到 6 条，换来的只是 4 条本来就该弃权的答案。
+            rescue = self._retry_typo_sibling(answer, text)
+            if rescue is not None:
+                kept.append(rescue)
+                continue
+            answer.ok = False
+            answer.text = ""
+            answer.error = f"证据不足:{verdict.reason}"
+            blocked.append(f"{answer.folder}/{answer.entry or '?'} {verdict.coverage:.2f}")
+        if not blocked:
+            return kept, ""
+        return kept, f"证据闸门挡下 {len(blocked)} 条(覆盖度<{self.gate.threshold:.2f}):" + "、".join(blocked)
+
+    def _retry_typo_sibling(
+        self,
+        answer: ExpertAnswer,
+        text: str,
+        limit: int = 2,
+    ) -> ExpertAnswer | None:
+        """同一包里，用户的问法像不像另一条的标准问法的错写？像就改答那一条。"""
+        card = self._card(answer.folder)
+        if card is None:
+            return None
+        tried = 0
+        for entry in card.entries:
+            entry_id = str(entry.get("id") or "")
+            if not entry_id or entry_id == answer.entry:
+                continue
+            question = str(entry.get("question") or "").strip()
+            if not question:
+                continue
+            typo_of = self.gate._as_typo_of_question(text, entry)
+            if typo_of is None:
+                continue
+            tried += 1
+            if tried > limit:
+                break
+            candidate = self._ask_expert_card(card, question)
+            if candidate is None or not candidate.ok:
+                continue
+            candidate.evidence = f"看着像「{typo_of}」的错写,改答这一条"
+            return candidate
+        return None
 
     def _crisis_kind(self, text: str) -> str | None:
         """这段话说的是"我"还是"我身边的人"?不是危机话题就返回 None。"""

@@ -35,6 +35,30 @@ class TestTokenizer(unittest.TestCase):
     def test_single_character_word_is_kept(self) -> None:
         self.assertIn("u:熵", tokenize("熵"))
 
+    def test_fullwidth_and_compatibility_forms_are_folded(self) -> None:
+        # NFKC:全角字母 -> 半角,`①` -> `1`
+        self.assertIn("w:html", tokenize("ＨＴＭＬ"))
+        self.assertEqual(tokenize("①"), tokenize("1"))
+
+    def test_traditional_and_simplified_tokenize_the_same(self) -> None:
+        self.assertEqual(tokenize("電場是什麼"), tokenize("电场是什么"))
+
+    def test_version_suffix_keeps_the_stem(self) -> None:
+        tokens = tokenize("HTML5")
+        self.assertIn("w:html5", tokens)
+        self.assertIn("w:html", tokens)
+
+    def test_function_word_spans_do_not_become_tokens(self) -> None:
+        # 「怎么」的尾巴(滚怎 / 么做)不是内容词:留着会把查询覆盖率稀释成 1/3
+        self.assertEqual(tokenize("回滚怎么做"), ["b:回滚"])
+        self.assertEqual(tokenize("为什么"), [])
+
+    def test_generic_words_that_can_be_word_roots_are_not_blocked(self) -> None:
+        # 关系 / 定义 / 问题 能当词根(关系型数据库、定义域、问题域),不该被整段挡住
+        self.assertIn("b:义域", tokenize("定义域"))
+        self.assertIn("b:数据", tokenize("关系型数据库"))
+        self.assertIn("b:题域", tokenize("问题域"))
+
 
 class TestTfidfIndex(unittest.TestCase):
     @classmethod
@@ -57,6 +81,12 @@ class TestTfidfIndex(unittest.TestCase):
     def test_offtopic_is_below_threshold(self) -> None:
         self.assertEqual(self.index.search("怎么给猫剪指甲"), [])
         self.assertEqual(self.index.search("番茄炒蛋要放多少盐"), [])
+
+    def test_traditional_query_hits_simplified_entry(self) -> None:
+        # 归一化对文档与查询是同一套:繁体问句能落到简体条目上
+        hits = self.index.search("電車難題是什麼", limit=1)
+        self.assertTrue(hits)
+        self.assertEqual(hits[0].entry_id, "trolley")
 
     def test_empty_query_returns_nothing(self) -> None:
         self.assertEqual(self.index.search("  "), [])

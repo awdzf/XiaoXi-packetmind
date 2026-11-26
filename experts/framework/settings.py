@@ -39,6 +39,9 @@ DEFAULT_K1 = 1.5
 DEFAULT_B = 0.75
 DEFAULT_EXPANSION = 4
 DEFAULT_ABSTAIN_CONFIDENCE = 0.35
+#: 证据闸门：问题里的实义词有多少必须出现在条目头部（question/aliases/keywords）。
+#: 0 = 关闭闸门（退回只看 calibration 合成的置信度）。定阈值的实测见 evidence.py。
+DEFAULT_MIN_COVERAGE = 0.30
 DEFAULT_MAX_ENTRIES = 6
 DEFAULT_TEXT_BUDGET = 2400
 DEFAULT_CONFLICT_PRIORITY = ("author", "memory")
@@ -59,6 +62,9 @@ class RetrievalSettings:
     query_expansion: int = DEFAULT_EXPANSION
     hierarchy: bool = True
     abstain_confidence: float = DEFAULT_ABSTAIN_CONFIDENCE
+    #: 证据闸门阈值（0 = 关闭）。它不是置信度的替代品：置信度决定"选哪个"，
+    #: 覆盖度决定"答不答"。
+    min_coverage: float = DEFAULT_MIN_COVERAGE
     #: World Info 式预算：一次最多并入几条条目、答案正文最多多少字符
     max_entries: int = DEFAULT_MAX_ENTRIES
     text_budget: int = DEFAULT_TEXT_BUDGET
@@ -209,6 +215,11 @@ def _parse_retrieval(raw: object, notes: list[str]) -> RetrievalSettings:
             DEFAULT_ABSTAIN_CONFIDENCE, 0.0, 1.0,
             "retrieval.abstain_confidence", notes,
         ),
+        min_coverage=_clamp_float(
+            raw.get("min_coverage", DEFAULT_MIN_COVERAGE),
+            DEFAULT_MIN_COVERAGE, 0.0, 1.0,
+            "retrieval.min_coverage", notes,
+        ),
         max_entries=_clamp_int(
             raw.get("max_entries", DEFAULT_MAX_ENTRIES), DEFAULT_MAX_ENTRIES,
             1, 20, "retrieval.max_entries", notes,
@@ -306,14 +317,30 @@ def load(path: str | Path | None = None, environ: dict[str, str] | None = None) 
     )
 
 
-def _read_raw(path: Path) -> dict:
+def _read_raw(path: Path, *, for_write: bool = False) -> dict:
+    """读 config.json 的原始 dict。
+
+    `for_write=True` 时对"读不了/不是一个 JSON 对象"**拒绝继续**:
+    以前这里吞掉错误返回 {},调用方(`:trust` / `:priority`)再把它当空配置
+    原子写回 —— 手改坏的 config.json 会被整份覆盖成只剩 trust 段,用户的
+    max_packs / retrieval / context / _readme 全丢。宁可让这一条命令失败。
+    """
     if not path.is_file():
         return {}
     try:
         parsed = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
+    except (OSError, json.JSONDecodeError) as exc:
+        if for_write:
+            raise ValueError(
+                f"config.json 读不了({exc}):先修好或删掉它,再改设置 —— "
+                "现在写回会把手改过的配置整份覆盖掉"
+            ) from exc
         return {}
-    return parsed if isinstance(parsed, dict) else {}
+    if not isinstance(parsed, dict):
+        if for_write:
+            raise ValueError("config.json 不是一个 JSON 对象:先修好它,再改设置")
+        return {}
+    return parsed
 
 
 def _atomic_write(path: Path, raw: dict) -> None:
@@ -339,7 +366,7 @@ def update_trust(
 ) -> dict:
     """原子地改 config.json 的 trust 段（`:trust` / `:priority` 用）。"""
     config_path = Path(path) if path is not None else CONFIG_PATH
-    raw = _read_raw(config_path)
+    raw = _read_raw(config_path, for_write=True)
     trust = raw.get("trust")
     if not isinstance(trust, dict):
         trust = {}

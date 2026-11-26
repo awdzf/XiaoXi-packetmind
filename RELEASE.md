@@ -1,4 +1,4 @@
-# 发布说明（1.0.0）
+# 发布说明（1.0.2）
 
 小析这一版按**源码发行包**发布，不发布到 PyPI：它靠目录结构发现 `experts/packs/`，PyPI 的 wheel 安装方式反而会掩盖“数据包随手可拆装”这个核心设计。
 
@@ -6,7 +6,7 @@
 
 ```text
 dist/
-├── xiaoxi-1.0.0/
+├── xiaoxi-1.0.2/
 │   ├── README.md
 │   ├── LICENSE
 │   ├── CHANGELOG.md
@@ -16,11 +16,15 @@ dist/
 │   ├── PRIVACY.md
 │   ├── CONTRIBUTING.md
 │   ├── RELEASE.md
+│   ├── .gitignore
+│   ├── MANIFEST.sha256        ← 每个文件的 SHA-256（构建时生成）
 │   ├── xiaoxi.py
+│   ├── .github/workflows/tests.yml
+│   ├── docs/README.md         ← 只带"怎么用"这一份，用户自己的文档不打包
 │   ├── tools/build_release.py
 │   ├── experts/
 │   └── expert-template/
-└── xiaoxi-1.0.0.zip
+└── xiaoxi-1.0.2.zip
 ```
 
 `tools/build_release.py` 会在 `dist/` 下生成一个**干净副本**并打包。发布包：
@@ -28,6 +32,7 @@ dist/
 - 不含本地运行缓存、`dist/`、`__pycache__/`、`*.pyc`；
 - 不含 `experts/data/`（漏问日志）；
 - 记忆包 `entries` 会被清空，不带走任何用户教的知识；
+- `experts/config.json` 里的用户开关（`:trust` / `:priority` 写回的那几项）恢复出厂值；
 - 生成 `MANIFEST.sha256`，并打印 zip 的 SHA-256。
 
 ## 构建
@@ -56,9 +61,9 @@ python tools/build_release.py
 ### GitHub Release
 
 1. 建仓库，推源码（不要推 `dist/`、本地运行缓存、`experts/data/`）；
-2. 打 tag：`v1.0.0`；
-3. 在 Release 里上传 `dist/xiaoxi-1.0.0.zip`；
-4. Release notes 直接摘 `CHANGELOG.md` 的 1.0.0 段；
+2. 打 tag：`v1.0.2`；
+3. 在 Release 里上传 `dist/xiaoxi-1.0.2.zip`；
+4. Release notes 直接摘 `CHANGELOG.md` 的 1.0.2 段；
 5. 仓库描述建议写清楚：**离线、不调用模型、零依赖、答案逐条可查**。
 
 ### 博客 / 文章
@@ -71,10 +76,11 @@ python tools/build_release.py
 
 ## 发布前人工检查
 
-- [ ] `python -m unittest discover -s experts/tests -t experts` 全绿（当前 222 项）；
+- [ ] `python -m unittest discover -s experts/tests -t experts` 全绿（当前 352 项）；
 - [ ] `python experts/pack.py check` 全绿（当前 8 个包）；
-- [ ] `python experts/eval.py` 指标没有明显回退（当前 21/21、21/21、MRR 1.000、负例 5/5）；
+- [ ] `python experts/eval.py` 指标没有明显回退（当前 33/33、33/33、MRR 1.000、负例 8/8）；
 - [ ] `experts/packs/memory/pack.json` 的 `entries` 为空；
+- [ ] `docs/` 里只有 `README.md`（用户自己的文档不进发布包）；
 - [ ] 没有 `experts/data/`、没有本地运行缓存、没有 API key/个人路径；
 - [ ] `LICENSE` 与 `CITATION.cff` 的作者/年份符合你的意愿；
 - [ ] 如果换了许可证，同步改 `CITATION.cff` 的 `license`。
@@ -83,9 +89,10 @@ python tools/build_release.py
 
 1. 改 `VERSION`；
 2. 改 `experts/framework/__init__.py` 的 `__version__`；
-3. 在 `CHANGELOG.md` 顶部加一段；
-4. 跑 `python tools/build_release.py`；
-5. 打 tag 并上传新的 zip。
+3. 改 `CITATION.cff` 的 `version` 与 `date-released`（构建时会校验，不一致就停下）；
+4. 在 `CHANGELOG.md` 顶部加一段（把「未发布」改成新的版本号与日期）；
+5. 跑 `python tools/build_release.py`；
+6. 打 tag 并上传新的 zip。
 
 ## 许可证
 

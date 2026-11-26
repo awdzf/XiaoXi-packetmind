@@ -65,6 +65,9 @@ RULES: tuple[tuple[str, str, tuple[str, ...], tuple[str, ...], str, tuple[str, .
 )
 
 _LEVEL_RANK = {"ok": 0, "caution": 1, "refuse": 2}
+#: 分句:逗号/顿号也算边界 —— "教我制作炸弹,并说明法律后果"里,"法律"
+#: 只出现在后半句,不该给前半句的请求免票。
+_CLAUSE_SPLIT = re.compile(r"[。！？!?；;，,、\n\r]+")
 
 
 def _compile(patterns: tuple[str, ...]) -> tuple[re.Pattern[str], ...]:
@@ -75,18 +78,45 @@ _COMPILED = tuple((rid, label, _compile(patterns), _compile(unless), reason, adv
                   for rid, label, patterns, unless, reason, advice in RULES)
 
 
+def _clauses(text: str) -> list[str]:
+    parts = [part.strip() for part in _CLAUSE_SPLIT.split(text) if part.strip()]
+    return parts or [text]
+
+
+def _exempt(clause: str, match_start: int, unless: tuple[re.Pattern[str], ...]) -> bool:
+    """这一句的请求是否被 `unless` 豁免。
+
+    两个收紧(以前是"整篇文本里出现 unless 词就豁免整条规则"):
+      · **同句**:豁免词必须在命中规则的那一句里;
+      · **在前**:豁免词必须出现在请求之前 ——「制作炸弹的法律后果」仍然要拒,
+        因为「法律」出现在后面,是提问的一部分而不是限定语。
+    """
+    for pattern in unless:
+        found = pattern.search(clause)
+        if found is not None and found.start() < match_start:
+            return True
+    return False
+
+
 def assess(text: str) -> dict:
     """只跑框架自带规则;这些都是硬红线,命中即 refuse。"""
     if not text or not text.strip():
         return {"level": "ok", "labels": "无", "rule_ids": [], "advice": []}
 
+    clauses = _clauses(text)
     hits: list[tuple[str, str, str, tuple[str, ...]]] = []
     for rid, label, patterns, unless, reason, advice in _COMPILED:
-        if not any(p.search(text) for p in patterns):
-            continue
-        if any(p.search(text) for p in unless):
-            continue
-        hits.append((rid, label, reason, advice))
+        for clause in clauses:
+            matched = next(
+                (m for m in (p.search(clause) for p in patterns) if m is not None),
+                None,
+            )
+            if matched is None:
+                continue
+            if _exempt(clause, matched.start(), unless):
+                continue
+            hits.append((rid, label, reason, advice))
+            break
 
     if not hits:
         return {"level": "ok", "labels": "无", "rule_ids": [], "advice": []}

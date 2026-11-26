@@ -96,10 +96,3 @@ def _convert_temperature(value: float, frm: str, to: str) -> float:
     return celsius + 273.15
 
 
-def supported_kinds() -> dict[str, list[str]]:
-    """给 CLI / 帮助文本用的"支持哪些量纲与单位"。"""
-    out: dict[str, list[str]] = {}
-    for unit, (kind, _factor) in _LINEAR.items():
-        out.setdefault(kind, []).append(unit)
-    out["temperature"] = list(TEMPERATURE_UNITS)
-    return {k: sorted(v) for k, v in sorted(out.items())}

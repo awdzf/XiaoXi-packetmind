@@ -1,0 +1,46 @@
+# held-out 集：造完之后冻结，不许拿它调阈值（要调请另造第三套）
+{"id": "h-direct-01", "question": "解释一下心理学", "folder": "emotion", "entry": "psychology-what", "category": "holdout-paraphrase"}
+{"id": "h-direct-02", "question": "孤独感到底指什么", "folder": "emotion", "entry": "loneliness", "category": "holdout-paraphrase"}
+{"id": "h-direct-03", "question": "说说亲密关系里的爱", "folder": "emotion", "entry": "love", "category": "holdout-paraphrase"}
+{"id": "h-direct-04", "question": "双重效应原则要怎么理解", "folder": "ethics", "entry": "double-effect", "category": "holdout-paraphrase"}
+{"id": "h-direct-05", "question": "说说Java 字节码", "folder": "java", "entry": "bytecode", "category": "holdout-paraphrase"}
+{"id": "h-direct-06", "question": "积分到底指什么", "folder": "math", "entry": "integral", "category": "holdout-paraphrase"}
+{"id": "h-direct-07", "question": "能讲讲概率吗", "folder": "math", "entry": "probability", "category": "holdout-paraphrase"}
+{"id": "h-direct-08", "question": "说说图论", "folder": "math", "entry": "graph-theory", "category": "holdout-paraphrase"}
+{"id": "h-direct-09", "question": "物理学要怎么理解", "folder": "physics", "entry": "physics-what", "category": "holdout-paraphrase"}
+{"id": "h-direct-10", "question": "解释一下磁场", "folder": "physics", "entry": "magnetic-field", "category": "holdout-paraphrase"}
+{"id": "h-direct-11", "question": "量子纠缠怎么理解", "folder": "physics", "entry": "quantum-entanglement", "category": "holdout-paraphrase"}
+{"id": "h-direct-12", "question": "超导到底指什么", "folder": "physics", "entry": "superconductivity", "category": "holdout-paraphrase"}
+{"id": "h-typo-01", "question": "心理學是什么", "folder": "emotion", "entry": "psychology-what", "category": "typo-traditional"}
+{"id": "h-typo-02", "question": "倾 听 的 技 巧是什么", "folder": "emotion", "entry": "active-listening", "category": "typo-spaced"}
+{"id": "h-typo-03", "question": "义 务 论 ( 康 德 )是什么", "folder": "ethics", "entry": "deontology", "category": "typo-spaced"}
+{"id": "h-typo-04", "question": "A I   的 诚 实 边 界是什么", "folder": "ethics", "entry": "honesty-ai", "category": "typo-spaced"}
+{"id": "h-typo-05", "question": "微 分 方 程是什么", "folder": "math", "entry": "differential-equation", "category": "typo-spaced"}
+{"id": "h-typo-06", "question": "磁場是什么", "folder": "physics", "entry": "magnetic-field", "category": "typo-traditional"}
+{"id": "h-near-01", "question": "什么是柯西不等式", "category": "near-miss", "must_abstain": true, "shares_vocab_with": "math", "why_abstain": "共享数学范畴，包里没有这一条"}
+{"id": "h-near-02", "question": "洛必达法则什么时候能用", "category": "near-miss", "must_abstain": true, "shares_vocab_with": "math", "why_abstain": "共享「极限/求导」范畴，包里没有这一条"}
+{"id": "h-near-03", "question": "什么是线性规划的单纯形法", "category": "near-miss", "must_abstain": true, "shares_vocab_with": "math", "why_abstain": "共享「线性」范畴，包里没有这一条"}
+{"id": "h-near-04", "question": "泊松分布和指数分布的关系", "category": "near-miss", "must_abstain": true, "shares_vocab_with": "math", "why_abstain": "共享概率范畴，包里没有这一条"}
+{"id": "h-near-05", "question": "什么是拉格朗日乘子法", "category": "near-miss", "must_abstain": true, "shares_vocab_with": "math", "why_abstain": "共享数学范畴，包里没有这一条"}
+{"id": "h-near-06", "question": "霍尔效应是什么", "category": "near-miss", "must_abstain": true, "shares_vocab_with": "physics", "why_abstain": "共享物理范畴，包里没有这一条"}
+{"id": "h-near-07", "question": "什么是宇称不守恒", "category": "near-miss", "must_abstain": true, "shares_vocab_with": "physics", "why_abstain": "共享物理范畴，包里没有这一条"}
+{"id": "h-near-08", "question": "Redis 的持久化有哪几种", "category": "near-miss", "must_abstain": true, "shares_vocab_with": "web_dev", "why_abstain": "共享后端范畴，包里没有这一条"}
+{"id": "h-near-09", "question": "Nginx 怎么做反向代理", "category": "near-miss", "must_abstain": true, "shares_vocab_with": "web_dev", "why_abstain": "共享部署范畴，包里没有这一条"}
+{"id": "h-near-10", "question": "什么是 B+ 树和哈希索引的区别", "category": "near-miss", "must_abstain": true, "shares_vocab_with": "web_dev", "why_abstain": "共享数据结构范畴，包里没有这一条"}
+{"id": "h-near-11", "question": "Java 的反射是怎么实现的", "category": "near-miss", "must_abstain": true, "shares_vocab_with": "java", "why_abstain": "共享语言范畴，包里没有这一条"}
+{"id": "h-near-12", "question": "什么是设计模式里的观察者模式", "category": "near-miss", "must_abstain": true, "shares_vocab_with": "java", "why_abstain": "共享编程范畴，包里没有这一条"}
+{"id": "h-near-13", "question": "拖延症的心理机制是什么", "category": "near-miss", "must_abstain": true, "shares_vocab_with": "emotion", "why_abstain": "共享情绪范畴，包里没有这一条"}
+{"id": "h-near-14", "question": "罗尔斯的无知之幕是什么意思", "category": "near-miss", "must_abstain": true, "shares_vocab_with": "ethics", "why_abstain": "共享「罗尔斯/正义」范畴，包里没有这一条"}
+{"id": "h-near-15", "question": "动物有没有道德地位", "category": "near-miss", "must_abstain": true, "shares_vocab_with": "ethics", "why_abstain": "共享伦理范畴，包里没有这一条"}
+{"id": "h-near-16", "question": "什么是程序正义", "category": "near-miss", "must_abstain": true, "shares_vocab_with": "ethics", "why_abstain": "共享伦理范畴，包里没有这一条"}
+{"id": "h-ood-01", "question": "明天去杭州的高铁还有票吗", "category": "negative", "must_abstain": true}
+{"id": "h-ood-02", "question": "帮我写一封辞职信", "category": "negative", "must_abstain": true}
+{"id": "h-ood-03", "question": "今年冬天会特别冷吗", "category": "negative", "must_abstain": true}
+{"id": "h-ood-04", "question": "哪款手机拍照最好", "category": "negative", "must_abstain": true}
+{"id": "h-ood-05", "question": "如何申请公积金贷款", "category": "negative", "must_abstain": true}
+{"id": "h-ood-06", "question": "推荐一部科幻电影", "category": "negative", "must_abstain": true}
+{"id": "h-trap-01", "question": "它是什么", "category": "trap", "must_abstain": true, "why_abstain": "指代不明：没有上下文时不该猜一个条目"}
+{"id": "h-trap-02", "question": "请把上面那段翻译成英文", "category": "trap", "must_abstain": true, "why_abstain": "没有上文，也没有翻译能力"}
+{"id": "h-trap-03", "question": "爱因斯坦因为发现引力波获得了诺贝尔奖吗", "category": "trap", "must_abstain": true, "why_abstain": "前提为假：他因光电效应获奖"}
+{"id": "h-trap-04", "question": "量子力学和相对论哪个更重要", "category": "trap", "must_abstain": true, "why_abstain": "评价性问题，包里没有比较依据"}
+{"id": "h-trap-05", "question": "你说的那个东西到底对不对", "category": "trap", "must_abstain": true, "why_abstain": "没有指代对象，无法核对"}

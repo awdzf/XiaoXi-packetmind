@@ -264,9 +264,6 @@ def _strip_article(text: str) -> str:
     return text.strip()
 
 
-def _looks_like_fact(text: str) -> bool:
-    return parse_fact(text) is not None
-
 
 def parse_logic(text: str) -> ParseOutcome:
     """解析布尔式。返回树或失败原因。"""
@@ -372,9 +369,6 @@ def parse_conditional(text: str) -> Conditional | None:
     cond.conclusion = parse_fact(conclusion_text)
     return cond
 
-
-def describe_expr(expr: Expr | None) -> str:
-    return to_text(expr) if expr is not None else "(空)"
 
 
 def _parse_class_question(text: str, subject: str) -> tuple[str, str] | None:

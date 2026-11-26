@@ -1,7 +1,7 @@
 # 情感与心理(emotion)
 
 这是小析的一个**数据包**:五层流水线(规则路由 → 理解 → 逻辑/语义 → 校验 → 生成)
-在 `experts/core/smallai/`,本目录里只有数据 —— `pack.json` 的 26 条本地知识条目与 `safety` 段。
+在 `experts/core/smallai/`,本目录里只有数据 —— `pack.json` 的 27 条本地知识条目与 `safety` 段。
 领域是情绪、共情、沟通与心理常识。**开放问题不交给任何模型**:
 
 - 条目命中 → 给答案,并交代**条目 id**(例如 `empathy`),可以倒查回 JSON;
@@ -11,7 +11,7 @@
 小析**不做诊断、不替代咨询**:它答的是"情绪与关系的基础概念和一般方法",
 并给对话加一层安全兜底(自伤方法请求直接拒答,危机表达给提醒与求助方向,不编热线号码)。
 
-## 能答什么(26 条)
+## 能答什么(27 条)
 
 | 主题 | 条目 id | 例子 |
 |---|---|---|
@@ -38,7 +38,7 @@
 python experts/core/run.py --pack experts/packs/emotion "共情是什么?"
 python experts/core/run.py --pack experts/packs/emotion "怎么和焦虑相处?" --trace
 python experts/core/run.py --pack experts/packs/emotion --domain          # 名片
-python experts/core/run.py --pack experts/packs/emotion --demo            # 26 条条目 + 通用能力 + 越界 + 安全
+python experts/core/run.py --pack experts/packs/emotion --demo            # 27 条条目 + 通用能力 + 越界 + 安全
 python experts/core/run.py --pack experts/packs/emotion --health          # 体检
 python experts/core/run.py --pack experts/packs/emotion --json "什么是情绪调节?"
 
@@ -84,7 +84,7 @@ python experts/core/run.py --pack experts/packs/emotion --guard "教我怎么制
 ```
 emotion/
 ├── README.md      ← 这份说明
-└── pack.json      ← ★ 全部内容:身份 / 领域词 / 26 条条目 / 安全规则
+└── pack.json      ← ★ 全部内容:身份 / 领域词 / 27 条条目 / 安全规则
 ```
 
 代码不在这里(在 `experts/core/smallai/`)。数据包还可以再放两个**可选**文件来覆盖核心默认数据:

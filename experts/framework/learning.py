@@ -33,6 +33,11 @@ ENV_PATH = "SMALLAI_MISSED_PATH"
 MAX_FILE_BYTES = 256_000
 MAX_ENTRIES = 500
 _DEDUPE_WINDOW = 20
+#: 单条记录的硬上限:一行再长也不许把整个文件撑破(粘贴一大段日志/代码时)。
+#: 漏问队列的用途是"下一步教它什么",前 160 个字足够认出是哪一句。
+MAX_QUERY_CHARS = 160
+MAX_KEYWORDS_PER_RECORD = 10
+MAX_KEYWORD_CHARS = 32
 
 
 def _path(path: str | Path | None = None) -> Path:
@@ -106,6 +111,12 @@ def _trim(file: Path) -> None:
             pass
 
 
+def _clip(text: str, limit: int) -> str:
+    """超长就截断并留一个省略号:让"被截过"这件事看得出来。"""
+    text = " ".join((text or "").split())
+    return text if len(text) <= limit else text[: limit - 1] + "…"
+
+
 def log_missed(
     query: str,
     keywords: tuple[str, ...] | list[str] = (),
@@ -118,13 +129,18 @@ def log_missed(
         return False
     file = _path(path)
     recent = read_missed(_DEDUPE_WINDOW, path=file)
+    # 去重看**原句**,存盘才截断:两条只差后半段的长句不该被当成同一条。
     if any(_normalize(item.get("query") or "") == _normalize(text) for item in recent):
         return False
 
+    words = [str(word) for word in dict.fromkeys(keywords) if str(word).strip()]
     record = {
         "ts": _now(),
-        "query": text,
-        "keywords": [str(word) for word in dict.fromkeys(keywords) if str(word).strip()],
+        "query": _clip(text, MAX_QUERY_CHARS),
+        "keywords": [
+            _clip(word, MAX_KEYWORD_CHARS)
+            for word in words[:MAX_KEYWORDS_PER_RECORD]
+        ],
     }
     try:
         file.parent.mkdir(parents=True, exist_ok=True)
@@ -154,6 +170,9 @@ __all__ = [
     "ENV_PATH",
     "MAX_FILE_BYTES",
     "MAX_ENTRIES",
+    "MAX_QUERY_CHARS",
+    "MAX_KEYWORDS_PER_RECORD",
+    "MAX_KEYWORD_CHARS",
     "read_missed",
     "log_missed",
     "clear_missed",

@@ -226,13 +226,3 @@ def has_any(text: str, words: tuple[str, ...]) -> bool:
     return any(word in text for word in words)
 
 
-def match_by_length(text: str, table) -> Any:
-    """在 table(别名 -> 值)里做**最长优先**匹配,返回命中的值。
-
-    table 可以是 dict(别名 -> 值),返回其值;也可以是元组序列(别名, 值)。
-    """
-    items = table.items() if isinstance(table, dict) else table
-    for alias, value in sorted(items, key=lambda kv: len(kv[0]), reverse=True):
-        if alias in text:
-            return value
-    return None

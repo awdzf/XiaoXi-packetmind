@@ -1,0 +1,25 @@
+# 同词异义测试集（v3b）：和 v3a 同类，但**换了句式、换了词**
+# 这一套造完就没再改过代码/语料（不参与调参），用来量"修完之后在没见过的句子上还灵不灵"。
+{"id": "v3b-h01", "question": "会员积分能换什么礼品", "category": "sameword-homonym", "must_abstain": true, "shares_vocab_with": "math/integral"}
+{"id": "v3b-h02", "question": "跳伞算不算极限运动", "category": "sameword-homonym", "must_abstain": true, "shares_vocab_with": "math/limit"}
+{"id": "v3b-h03", "question": "部门矩阵的汇报线怎么定", "category": "sameword-homonym", "must_abstain": true, "shares_vocab_with": "math/matrix"}
+{"id": "v3b-h04", "question": "QQ 群里怎么@所有人", "category": "sameword-homonym", "must_abstain": true, "shares_vocab_with": "math/group"}
+{"id": "v3b-h05", "question": "HDMI 接口和 DP 接口哪个好", "category": "sameword-homonym", "must_abstain": true, "shares_vocab_with": "java/interface-abstract"}
+{"id": "v3b-h06", "question": "遗嘱没写清楚继承顺序怎么办", "category": "sameword-homonym", "must_abstain": true, "shares_vocab_with": "java/oop"}
+{"id": "v3b-h07", "question": "气温异常对农业有什么影响", "category": "sameword-homonym", "must_abstain": true, "shares_vocab_with": "java/exception"}
+{"id": "v3b-h08", "question": "水压和气压是怎么换算的", "category": "sameword-homonym", "must_abstain": true, "shares_vocab_with": "emotion/stress"}
+{"id": "v3b-n01", "question": "对象的生日是哪天", "category": "sameword-new", "must_abstain": true, "shares_vocab_with": "java/class-object", "why_abstain": "「对象」是恋人，不是编程里的对象（新歧义，语料里没写判据）"}
+{"id": "v3b-n02", "question": "快递封装得结不结实", "category": "sameword-new", "must_abstain": true, "shares_vocab_with": "java/oop", "why_abstain": "「封装」是打包，不是面向对象的封装"}
+{"id": "v3b-n03", "question": "镜子反射的光有多亮", "category": "sameword-new", "must_abstain": true, "shares_vocab_with": "physics/electromagnetic-wave", "why_abstain": "「反射」是光学反射"}
+{"id": "v3b-n04", "question": "货车重载上坡要注意什么", "category": "sameword-new", "must_abstain": true, "shares_vocab_with": "java/overload-override", "why_abstain": "「重载」是货车超载"}
+{"id": "v3b-o01", "question": "导数在物理里表示什么", "category": "sameword-offtopic", "must_abstain": true, "shares_vocab_with": "math/derivative"}
+{"id": "v3b-o02", "question": "矩阵能不能用来做推荐系统", "category": "sameword-offtopic", "must_abstain": true, "shares_vocab_with": "math/matrix"}
+{"id": "v3b-o03", "question": "相对论对哲学有什么影响", "category": "sameword-offtopic", "must_abstain": true, "shares_vocab_with": "physics/relativity"}
+{"id": "v3b-o04", "question": "热力学在发动机里怎么用", "category": "sameword-offtopic", "must_abstain": true, "shares_vocab_with": "physics/thermodynamics"}
+{"id": "v3b-p01", "question": "不确定性和动量为什么不能同时测准", "folder": "physics", "entry": "heisenberg", "category": "sameword-other"}
+{"id": "v3b-p02", "question": "Flexbox 和 Grid 该选哪个布局", "folder": "web_dev", "entry": "flex-vs-grid", "category": "sameword-other"}
+{"id": "v3b-p03", "question": "垃圾回收里说的可达性分析是什么", "folder": "java", "entry": "gc", "category": "sameword-other"}
+{"id": "v3b-p04", "question": "先验概率和后验概率怎么更新", "folder": "math", "entry": "conditional-probability", "category": "sameword-other"}
+{"id": "v3b-p05", "question": "黑洞的事件视界是什么意思", "folder": "physics", "entry": "black-hole", "category": "sameword-other"}
+{"id": "v3b-p06", "question": "synchronized 和 volatile 在可见性上差在哪", "folder": "java", "entry": "sync", "category": "sameword-other"}
+{"id": "v3b-p07", "question": "卷积神经网络里的卷积是什么", "category": "sameword-other", "must_abstain": true, "shares_vocab_with": "math/integral"}

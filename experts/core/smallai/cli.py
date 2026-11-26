@@ -195,10 +195,16 @@ def cmd_health(kb_path: str | None = None) -> int:
     checks.append(("原题覆盖", not coverage_bad, "全部条目可检索" if not coverage_bad else f"{len(coverage_bad)} 条检不回自己"))
 
     if PACK.has_structure:
+        # 文档(experts/README「体检」一节)承诺这一行带 Datalog 计数,以前漏了。
+        datalog_count = (
+            len(PACK.datalog.get("facts") or ())
+            + len(PACK.datalog.get("rules") or ())
+        )
         checks.append((
             "结构化知识",
             True,
-            f"事实 {len(PACK.facts)} / 规则 {len(PACK.rules)} / 关系 {len(PACK.relations)}",
+            f"事实 {len(PACK.facts)} / 规则 {len(PACK.rules)} / "
+            f"关系 {len(PACK.relations)} / Datalog {datalog_count}",
         ))
 
     # 模型:确认这一版真的没有模型接入

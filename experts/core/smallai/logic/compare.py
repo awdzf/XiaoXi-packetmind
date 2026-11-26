@@ -60,16 +60,6 @@ def _fmt(value: float) -> str:
     return str(int(value)) if float(value).is_integer() else f"{value:g}"
 
 
-def match_unit_alias(raw: str) -> str | None:
-    """把一段字符匹配到规范单位(最长优先)。与理解层同一套词表。"""
-    if not raw:
-        return None
-    text = raw.strip().lower()
-    for alias in ALIASES_BY_LENGTH:
-        if text == alias or text.endswith(alias):
-            return UNIT_ALIASES[alias]
-    return None
-
 
 def extract_quantities(text: str) -> list[Quantity]:
     """抽出一句话里所有的"数值+单位"。

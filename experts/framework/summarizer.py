@@ -52,6 +52,8 @@ class ExpertAnswer:
     trust: str = "normal"
     #: 低优先级冲突时给用户看的说明（作者包 > 用户记忆的默认顺序）
     conflict_note: str = ""
+    #: 证据闸门的结论（覆盖度 / 阈值 / 靠哪条纠错候选）；空 = 没经过闸门
+    evidence: str = ""
 
 
 def _content_lines(text: str) -> list[str]:
@@ -329,6 +331,13 @@ def _verbose_summary(
     if trace:
         shown = "、".join(c.text for c in decomposition.candidates[:12])
         lines.append(f"[候选] 共 {len(decomposition.candidates)} 条,前 12 条:{shown}")
+        # 词典纠错是"改过用户原话"的唯一一处,单独列出来便于核对
+        corrections = [
+            str(note) for note in decomposition.notes
+            if str(note).startswith("词典纠错")
+        ]
+        if corrections:
+            lines.append("[纠错] " + ";".join(corrections))
         lines.append(f"[查找明细] {routing.notes}")
         for target in routing.targets:
             why = " / ".join(target.reasons[:5]) or "-"

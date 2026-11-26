@@ -56,6 +56,18 @@ max_packs 个);如果命中的是"包含已命中包"的父包,就叫**再命中
 BM25 索引按数据包增量更新(教完一条只动记忆包),`--trace` / `:stat` 能看到
 置信度、查询扩展次数与最近增量了哪个包。
 
+**文档模式**(只读某一份文档):句尾写 `@文档名` 或 `@@相对路径`,
+这一轮**只读那一份文档**,并且只引用原文(带章节与行号),不查数据包。
+
+    python experts/GoChat.py "怎么回滚@手册"           # 在 docs/ 里找 手册.md
+    python experts/GoChat.py "怎么回滚@@docs/手册.md"  # 按 xiaoxi.py 的相对路径取
+    python experts/GoChat.py "@手册"                  # 只给文档不给问题 -> 列目录
+
+约定:文档放 `<项目根>/docs/`(项目根 = xiaoxi.py 所在目录);可省扩展名、
+大小写不敏感、可带子目录;`@@` 只接受**项目目录内**的相对路径(不能用 `..` 跑出去),
+只认 `.md` / `.markdown` / `.txt`。找不到、有歧义、内容命中安全底线都会如实说明。
+`--docs` 或对话里的 `:docs` 列出目录里有哪些文档。
+
 **可调开关**:`experts/config.json` 的 `max_packs`(一次最多查几个包,1–8,
 默认 3)、`rehit_rounds`(再命中轮数,0–3,默认 1)、`context`(记忆开关与大小),
 以及 `retrieval`(BM25/混合/扩展/分层/弃权/条数与字符预算)与
@@ -83,6 +95,10 @@ BM25 索引按数据包增量更新(教完一条只动记忆包),`--trace` / `:s
     python experts/GoChat.py --route "向量场和电场的关系?" # 只看查找(含再命中)
     python experts/GoChat.py --guard "某段文本"    # 只看安全判定
     python experts/GoChat.py --packs              # 看数据包与包含关系
+    python experts/GoChat.py --docs               # 看 docs/ 里有哪些文档
+    python experts/GoChat.py "怎么回滚@手册"       # 只读 docs/手册.md 这一份并引用原文
+    python experts/GoChat.py "怎么回滚@@docs/手册.md"  # 用相对 xiaoxi.py 的路径指定
+    python experts/GoChat.py "@手册"              # 只给文档不给问题:列它的目录
     python experts/GoChat.py --missed             # 看最近没接住的问题(本地学习队列)
     python experts/GoChat.py --eval               # 跑检索评测集(hit@1 / MRR / 弃权)
     python experts/GoChat.py --max-packs 2 "..."  # 这一次最多查 2 个包
@@ -91,7 +107,7 @@ BM25 索引按数据包增量更新(教完一条只动记忆包),`--trace` / `:s
     python experts/GoChat.py --subprocess "..."   # 这一次改回子进程(隔离优先)
 
 对话中的命令:
-    help  :quit  :packs  :trace [on|off]  :detail [on|off]  :stat 看进程/缓存
+    help  :quit  :packs  :docs [文档名]  :trace [on|off]  :detail [on|off]  :stat 看进程/缓存
     :ctx 看上下文   :forget 忘掉上下文   :max [N] 看/改上限   :rehit [N] 看/改再命中轮数
     :missed [N] 看漏问   :missed clear 清空漏问
     :trust [high|low|off|author on|off] [包/条目]  看/改高置信条目（作者包默认高）
@@ -105,6 +121,7 @@ BM25 索引按数据包增量更新(教完一条只动记忆包),`--trace` / `:s
 from __future__ import annotations
 
 import argparse
+import io
 import sys
 from pathlib import Path
 
@@ -118,6 +135,7 @@ from framework import (  # noqa: E402  (必须在 sys.path 调整之后)
     __version__,
     discover,
     evaluation,
+    formula,
     learning,
     lessons,
     persona,
@@ -140,11 +158,52 @@ def _force_utf8() -> None:
         pass
 
 
+def _prepare_stdin() -> None:
+    """把管道进来的字节按"真能读出来"的编码解码。
+
+    终端里不动它。管道/重定向时没有两全的编码:cmd 的管道是系统代码页(中文 Windows
+    通常是 GBK),PowerShell 7 默认是 UTF-8。先按 UTF-8 试,解不开再按系统代码页
+    (`mbcs`)—— 纯 ASCII 与 UTF-8 都走第一条,GBK 只在 UTF-8 解不开时才落到第二条。
+
+    代价:非终端输入会被一次性读完(交互式管道里"边写边答"变成"写完再答"),
+    换来的是 `echo 你是谁 | python xiaoxi.py` 在各家 shell 里都能读到正常的中文。
+    """
+    stream = sys.stdin
+    if stream is None:
+        return
+    try:
+        if stream.isatty():
+            return
+    except (OSError, ValueError):
+        return
+    buffer = getattr(stream, "buffer", None)
+    if buffer is None:
+        return
+    try:
+        data = buffer.read()
+    except (OSError, ValueError):
+        return
+    text: str | None = None
+    for encoding in ("utf-8", "mbcs"):
+        try:
+            text = data.decode(encoding)
+            break
+        except (UnicodeDecodeError, LookupError):
+            continue
+    sys.stdin = io.StringIO(text if text is not None else data.decode("utf-8", "replace"))
+
+
 def _banner(chat: GoChat, trace: bool, detail: bool) -> str:
     names = " · ".join(card.folder for card in chat.cards) or "(一个数据包也没有)"
     general = next((card.folder for card in chat.cards if card.is_general), None)
     context = "on" if chat.context_enabled else "off"
     engine = "单进程(内核常驻)" if chat.engine == "inprocess" else "子进程(隔离优先)"
+    doc_count = chat.docs.count() if chat.docs.available else 0
+    documents = (
+        f"文档 {doc_count} 份(问题@文档名 只读一份)"
+        if chat.docs.available
+        else "文档模式:新建 docs/ 放 .md/.txt,用 问题@文档名"
+    )
     return (
         "=" * 72 + "\n"
         f"{persona.time_greeting()},我是{persona.NAME}。\n"
@@ -153,6 +212,7 @@ def _banner(chat: GoChat, trace: bool, detail: bool) -> str:
         f"  兜底包:{general or '未安装(不影响其它数据包)'}\n"
         f"  引擎 {engine} · 一次最多查 {chat.max_packs} 个包 · "
         f"再命中 {chat.rehit_rounds} 轮 · 上下文 {context}\n"
+        f"  {documents}\n"
         f"  trace={'on' if trace else 'off'} detail={'on' if detail else 'off'}"
         " · help 可看命令\n"
         + "=" * 72
@@ -276,6 +336,14 @@ def _forget(chat: GoChat, raw: str) -> None:
     print(f"[记忆] 现在还剩 {len(chat.taught())} 条你教的知识。\n")
 
 
+def _print_docs(chat: GoChat) -> None:
+    """看 docs/ 里有哪些文档(文档模式的入口)。"""
+    print("=" * 72)
+    print(chat.documents_text())
+    print("=" * 72)
+    print()
+
+
 def _print_stat(chat: GoChat) -> None:
     """看这一轮用的进程形态、流水线缓存命中与上一问耗时。"""
     info = chat.engine_info()
@@ -305,20 +373,27 @@ def _print_stat(chat: GoChat) -> None:
               f"最近增量 {','.join(retrieval.get('last_refresh') or []) or '无'}")
     for note in info.get("notes") or ():
         print("[回退] " + str(note))
+    print(f"[文档] {chat.docs.count()} 份 · 读盘 {chat.docs.reads} 次 / "
+          f"复用 {chat.docs.reuses} 次 · 目录 {chat.docs.root}")
     print("=" * 72)
     print()
 
 
-def _print_eval(chat: GoChat, path: str | None = None) -> None:
+def _print_eval(chat: GoChat, path: str | None = None) -> int:
+    """跑评测集并返回退出码:0 = 全过,1 = 有用例没过,2 = 评测集都跑不了。
+
+    之前这里恒返回 None(=> 退出码 0),CI 里 `--eval` 失败也会"绿"。
+    """
     try:
         report = evaluation.run(chat, path)
     except (OSError, ValueError) as exc:
         print(f"[评测] 跑不了：{exc}\n")
-        return
+        return 2
     print("=" * 72)
     print("[评测] " + report.render())
     print("=" * 72)
     print()
+    return 1 if report.failures else 0
 
 
 def _print_trust(chat: GoChat) -> None:
@@ -384,7 +459,7 @@ def _set_priority(chat: GoChat, argument: str) -> None:
     print(f"[优先级] {' > '.join(order)}（已写回 config.json）\n")
 
 
-def _print_guard(chat: GoChat, text: str) -> None:
+def _print_guard(chat: GoChat, text: str) -> str:
     report = chat.guard(text)
     print(f"[安全判定] {report.get('level', 'ok')}")
     if report.get("rule_ids"):
@@ -396,6 +471,7 @@ def _print_guard(chat: GoChat, text: str) -> None:
     if report.get("error"):
         print("  注意:" + str(report["error"]))
     print()
+    return str(report.get("level") or "ok")
 
 
 def _ask_yes_no(prompt: str) -> str:
@@ -406,22 +482,45 @@ def _ask_yes_no(prompt: str) -> str:
         return "n"
 
 
+def _stdin_is_interactive() -> bool:
+    """单次提问时判断有没有"人"能回答 y/n。
+
+    管道/CI 里 stdin 不是终端:这时不该弹「能否再调用数据包」——
+    既没人能答(只会在输出里留一条悬空提示),也会让脚本读到的回答错位。
+    对话模式(`_interactive`)不受影响,它本来就在读 stdin。
+    """
+    try:
+        return bool(sys.stdin is not None and sys.stdin.isatty())
+    except Exception:                                          # noqa: BLE001
+        return False
+
+
 def _is_miss(result) -> bool:
     """这一轮是不是"没接住"（用来记漏问）。
 
     任何一条 ok 的回答都算接住了：兜底包的寒暄、人格自述、教过的记忆也算；
     拒答与空结果不算漏问（前者是明确拒绝，后者可能只是输入为空）。
+    文档模式也不算漏问：没读到 / 没命中是"文档或问法"的事，不是知识缺口 ——
+    记进学习队列只能教出"文档里的一句话"，没有意义。
     """
     if result.safety.get("level") == "refuse":
+        return False
+    if any(answer.source == "document" for answer in result.answers):
         return False
     return not any(answer.ok for answer in result.answers)
 
 
-def _answer(chat: GoChat, text: str, trace: bool, detail: bool) -> None:
+def _answer(
+    chat: GoChat,
+    text: str,
+    trace: bool,
+    detail: bool,
+    ask_user=None,
+) -> None:
     try:
         result = chat.ask(
             text, detail=detail, trace=trace,
-            plain=not trace, ask_user=_ask_yes_no,
+            plain=not trace, ask_user=ask_user,
         )
     except Exception as exc:                                   # noqa: BLE001
         print(f"[错误] 这一轮没能完成:{type(exc).__name__}: {exc}")
@@ -460,11 +559,85 @@ def _clear_missed() -> None:
     print(f"[漏问] 清掉了 {count} 条记录(数据包与记忆不受影响)。\n")
 
 
+def _teach_formula(chat: GoChat, raw: str, taught: "formula.Formula",
+                   constants: dict[str, float] | None = None) -> None:
+    """`#名字~算式:变量` 教一个公式：确认后写进记忆包，之后 `名字:值,值` 就能算。"""
+    print("[公式] 要记住的公式:" + taught.name)
+    print("[公式] 算式:" + taught.expr)
+    print("[公式] 变量:" + "、".join(taught.vars))
+    print("[公式] 以后这样算:" + taught.call_hint()
+          + "  例：" + taught.name + ":" + ",".join("1" for _ in taught.vars))
+    for note in formula.teach_warnings(taught, constants):
+        print("[公式] 注意:" + note)
+    if not lessons.is_yes(_ask_yes_no("是否写入记忆[y/n]:")):
+        print("[公式] 好,不写。\n")
+        return
+    try:
+        entry, created = chat.teach_formula(taught, raw=raw)
+    except (RuntimeError, OSError, ValueError) as exc:     # noqa: BLE001
+        print(f"[公式] 写不进去:{exc}\n")
+        return
+    verb = "已学会" if created else "已更新(同一个名字不重复写,算式会覆盖旧的)"
+    print(f"[公式] {verb} 数据包 memory · 条目 {entry['id']}。")
+    print(f"       现在可以直接算：{taught.call_hint()}")
+    print(f"       也可以正常提问（教过的知识一样能被查到）：{taught.name}怎么算\n")
+
+
+def _teach_constant(chat: GoChat, raw: str, taught: "formula.UserConstant") -> None:
+    """`#名字=数值` 定一个常数：确认后写进记忆包，之后在算式里直接用这个名字。"""
+    print("[常数] 要记住的常数:" + taught.name)
+    print("[常数] 数值:" + taught.expr + f"  (= {taught.value!r})")
+    if taught.name in formula.CONSTANTS:
+        symbol = formula.constant_symbol_of(taught.name)
+        print(f"[常数] 注意：这个名字和内置常数 {symbol} 重名 —— 你的定义会盖住它")
+    if not lessons.is_yes(_ask_yes_no("是否写入记忆[y/n]:")):
+        print("[常数] 好,不写。\n")
+        return
+    try:
+        entry, created = chat.teach_constant(taught, raw=raw)
+    except (RuntimeError, OSError, ValueError) as exc:     # noqa: BLE001
+        print(f"[常数] 写不进去:{exc}\n")
+        return
+    verb = "已记住" if created else "已更新"
+    print(f"[常数] {verb} 数据包 memory · 条目 {entry['id']}。")
+    print(f"       现在可以在公式里直接用：{taught.name}\n")
+
+
 def _teach(chat: GoChat, raw: str) -> None:
     """`#问题~答案` 教一道题；`#!问题~新答案` 修正（CBR revise）。
 
     旧写法 `#一句话知识` 仍然有效：问题与答案都是这句话。
     """
+    # 公式（`#名字~算式:变量`）。必须排在 `#问题~答案` 之前：
+    # `圆的面积~π*r^2:r` 用普通成对写法也能拆成 问题/答案，会被当成一句话知识存下去。
+    body = lessons.parse_marker(raw)
+    if body is not None:
+        constants = chat.user_constants()
+        taught_formula = formula.parse_teaching(body, constants)
+        if taught_formula is not None:
+            _teach_formula(chat, raw, taught_formula, constants)
+            return
+        if formula.looks_like_formula(body):
+            problem = formula.explain_teaching(body, constants)
+            if problem:
+                print("[公式] 这句像是要教公式，但还差点意思：")
+                print("  " + problem)
+                print("  写对了是这样：  # 圆的面积~π*r^2:r")
+                print("  之后要算就写：  圆的面积:3\n")
+                return
+        # 常数（`#名字=数值`）。排在公式之后：公式行里也可能出现 `=`（例如误写成方程），
+        # 那种情况要交给上面的公式报错，而不是被当成"常数名不合法"。
+        if "~" not in body and "=" in body:
+            taught_constant, why = formula.parse_constant(body)
+            if taught_constant is not None:
+                _teach_constant(chat, raw, taught_constant)
+                return
+            if why:
+                print("[常数] 这句像是要定常数，但还差点意思：")
+                print("  " + why)
+                print("  写对了是这样：  # c_light=2.998e8\n")
+                return
+
     correction = lessons.parse_correction(raw)
     if correction is not None:
         question, answer = correction
@@ -603,6 +776,18 @@ def _interactive(chat: GoChat, trace: bool, detail: bool) -> int:
         if raw in (":packs", ":experts"):
             _print_packs()
             continue
+        if lowered in (":docs", ":doc"):
+            _print_docs(chat)
+            continue
+        if lowered.startswith(":docs ") or lowered.startswith(":doc "):
+            # `:docs 手册` -> 直接看这份文档的目录(等价于只发一个 `@手册`)
+            argument = raw[len(":docs"):].strip()
+            try:
+                print(chat.ask("@" + argument, plain=not trace, trace=trace).summary)
+            except Exception as exc:                          # noqa: BLE001
+                print(f"[文档] 这一轮没能完成:{type(exc).__name__}: {exc}")
+            print()
+            continue
         if raw in (":ctx", ":context"):
             _print_context(chat)
             continue
@@ -616,32 +801,52 @@ def _interactive(chat: GoChat, trace: bool, detail: bool) -> int:
         if lowered == ":priority" or lowered.startswith(":priority "):
             _set_priority(chat, raw[len(":priority"):].strip())
             continue
-        if lowered.startswith(":max"):
+        if lowered == ":max" or lowered.startswith(":max "):
             arg = raw[len(":max"):].strip()
             if arg:
-                value = chat.set_max_packs(arg)
+                try:
+                    requested = int(arg)
+                except ValueError:
+                    print(f"「{arg}」不是数字;当前 max_packs = {chat.max_packs},"
+                          "改法: :max 2\n")
+                    continue
+                value = chat.set_max_packs(requested)
+                note = ""
+                if value != requested:
+                    note = (f"(你给的是 {requested},超出 1–{settings.MAX_PACKS_LIMIT},"
+                            f"已收敛到 {value})")
                 print(f"max_packs = {value}(一次最多查 {value} 个包;"
-                      "上限只按分数截断,不降低命中阈值)\n")
+                      f"上限只按分数截断,不降低命中阈值){note}\n")
             else:
                 print(f"max_packs = {chat.max_packs}"
-                      f"(1–{settings.MAX_PACKS_LIMIT};改法::max 2 或 --max-packs 2)\n")
+                      f"(1–{settings.MAX_PACKS_LIMIT};改法: :max 2 或 --max-packs 2)\n")
             continue
-        if lowered.startswith(":rehit"):
+        if lowered == ":rehit" or lowered.startswith(":rehit "):
             arg = raw[len(":rehit"):].strip()
             if arg:
-                value = chat.set_rehit_rounds(arg)
+                try:
+                    requested = int(arg)
+                except ValueError:
+                    print(f"「{arg}」不是数字;当前 rehit_rounds = {chat.rehit_rounds},"
+                          "改法: :rehit 0\n")
+                    continue
+                value = chat.set_rehit_rounds(requested)
+                note = ""
+                if value != requested:
+                    note = (f"(你给的是 {requested},超出 "
+                            f"0–{settings.MAX_REHIT_ROUNDS_LIMIT},已收敛到 {value})")
                 print(f"rehit_rounds = {value}"
-                      f"(再命中轮数,0 = 关闭;上限 {settings.MAX_REHIT_ROUNDS_LIMIT})\n")
+                      f"(再命中轮数,0 = 关闭;上限 {settings.MAX_REHIT_ROUNDS_LIMIT}){note}\n")
             else:
                 print(f"rehit_rounds = {chat.rehit_rounds}"
-                      f"(0–{settings.MAX_REHIT_ROUNDS_LIMIT};改法::rehit 0 或 --rehit 0)\n")
+                      f"(0–{settings.MAX_REHIT_ROUNDS_LIMIT};改法: :rehit 0 或 --rehit 0)\n")
             continue
-        if raw.startswith(":trace"):
+        if lowered == ":trace" or lowered.startswith(":trace "):
             arg = raw[len(":trace"):].strip().lower()
             trace = (arg != "off") if arg else (not trace)
             print(f"trace = {'on' if trace else 'off'}\n")
             continue
-        if raw.startswith(":detail"):
+        if lowered == ":detail" or lowered.startswith(":detail "):
             arg = raw[len(":detail"):].strip().lower()
             detail = (arg != "off") if arg else (not detail)
             print(f"detail = {'on' if detail else 'off'}\n")
@@ -658,8 +863,18 @@ def _interactive(chat: GoChat, trace: bool, detail: bool) -> int:
         if lowered.startswith(":guard "):
             _print_guard(chat, raw[len(":guard "):].strip())
             continue
+        if lowered in (":decompose", ":route", ":guard"):
+            print(f"用法: {lowered} <一句话>   (例如 {lowered} 向量场是什么)\n")
+            continue
+        if raw.startswith(":"):
+            # 不认识的命令不要掉进"提问"分支:那会把 `:foo` 当成知识问题、
+            # 记进漏问队列,还污染上下文。
+            print(f"不认识这个命令「{raw.split()[0]}」")
+            print("输 help 看命令清单(:packs :docs :ctx :stat :trust :priority "
+                  ":missed :eval :trace :detail)。\n")
+            continue
 
-        _answer(chat, raw, trace, detail)
+        _answer(chat, raw, trace, detail, _ask_yes_no)
 
 
 def build_argparser() -> argparse.ArgumentParser:
@@ -675,6 +890,8 @@ def build_argparser() -> argparse.ArgumentParser:
     p.add_argument("--route", metavar="句子", default=None, help="只看分解 + 查找")
     p.add_argument("--guard", metavar="文本", default=None, help="只看安全判定")
     p.add_argument("--packs", dest="packs", action="store_true", help="列出小析现在装着哪些数据包")
+    p.add_argument("--docs", dest="docs", action="store_true",
+                   help="列出 docs/ 里有哪些文档(文档模式:问题@文档名)")
     p.add_argument("--missed", action="store_true", help="看最近没接住的问题(本地学习队列)")
     p.add_argument("--eval", dest="eval", action="store_true",
                    help="跑检索评测集(experts/evaluation/cases.jsonl)")
@@ -695,7 +912,30 @@ def build_argparser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     _force_utf8()
-    args = build_argparser().parse_args(argv)
+    _prepare_stdin()
+    parser = build_argparser()
+    args = parser.parse_args(argv)
+    # 这些开关各代表一种"这一次只做这件事":同时给两个时以前会静默只做第一个,
+    # `--route X --guard Y` 甚至会让人以为做了安全判定。
+    modes = [
+        name for name, active in (
+            ("--packs", args.packs),
+            ("--docs", args.docs),
+            ("--missed", args.missed),
+            ("--eval", args.eval),
+            ("--decompose", args.decompose is not None),
+            ("--route", args.route is not None),
+            ("--guard", args.guard is not None),
+        ) if active
+    ]
+    if len(modes) > 1:
+        parser.error("这些开关是互斥的,一次只能用一个:" + " ".join(modes))
+    if args.cases and not args.eval:
+        parser.error("--cases 只在 --eval 下有意义")
+    if args.query and any((
+        args.decompose is not None, args.route is not None, args.guard is not None,
+    )):
+        parser.error("--decompose / --route / --guard 不和提问一起用")
     if DISCOVERY_ERRORS:
         print("[注意] 有数据包读取失败,已跳过(框架继续运行):")
         for problem in DISCOVERY_ERRORS:
@@ -705,9 +945,21 @@ def main(argv: list[str] | None = None) -> int:
     for note in config.notes:
         print("[配置] " + note)
 
-    # 命令行优先于配置文件:--max-packs / --rehit / --no-context 只影响这一次运行
-    max_packs = args.max_packs if args.max_packs is not None else config.max_packs
-    rehit = args.rehit if args.rehit is not None else config.rehit_rounds
+    # 命令行优先于配置文件:--max-packs / --rehit / --no-context 只影响这一次运行。
+    # 超范围的值以前是静默收敛的(config/env 那条路会提示,命令行不提示)——
+    # 这里补上同一句说明,别让人以为 99 生效了。
+    max_packs = config.max_packs
+    if args.max_packs is not None:
+        max_packs = settings.clamp_max_packs(args.max_packs)
+        if max_packs != args.max_packs:
+            print(f"[配置] --max-packs {args.max_packs} 超出 1–{settings.MAX_PACKS_LIMIT},"
+                  f"已按 {max_packs} 处理")
+    rehit = config.rehit_rounds
+    if args.rehit is not None:
+        rehit = settings.clamp_rehit_rounds(args.rehit)
+        if rehit != args.rehit:
+            print(f"[配置] --rehit {args.rehit} 超出 0–{settings.MAX_REHIT_ROUNDS_LIMIT},"
+                  f"已按 {rehit} 处理")
     chat = GoChat(max_packs=max_packs,
                   rehit_rounds=rehit,
                   context=False if args.no_context else None,
@@ -718,14 +970,22 @@ def main(argv: list[str] | None = None) -> int:
     if args.packs:
         _print_packs()
         return 0
+    if args.docs:
+        _print_docs(chat)
+        return 0
     if args.missed:
         _print_missed()
         return 0
     if args.eval:
-        _print_eval(chat, args.cases)
-        return 0
+        return _print_eval(chat, args.cases)
     if args.query:
         single = " ".join(args.query).strip()
+        if not single:
+            # `python xiaoxi.py ""` 以前会被当成一次"没接住"的提问:
+            # 打印"你想问的那个概念是什么",还往漏问队列里写一条空记录。
+            print('用法:python xiaoxi.py "你的问题"   (不带参数则进入对话模式)')
+            print("      python xiaoxi.py --help  看全部命令")
+            return 2
         if single.lower() == "help":
             print(__doc__)
             return 0
@@ -745,11 +1005,12 @@ def main(argv: list[str] | None = None) -> int:
         _print_routing(chat, args.route)
         return 0
     if args.guard is not None:
-        _print_guard(chat, args.guard)
-        return 0
+        # 拒答 = 1(与 ask.py / core run.py 同一契约),脚本才判得出"被拒了"。
+        return 1 if _print_guard(chat, args.guard) == "refuse" else 0
 
     if args.query:
-        _answer(chat, " ".join(args.query), args.trace, detail)
+        _answer(chat, " ".join(args.query), args.trace, detail,
+                _ask_yes_no if _stdin_is_interactive() else None)
         return 0
 
     return _interactive(chat, args.trace, detail)

@@ -1,0 +1,42 @@
+# held-out 集：造完之后冻结，不许拿它调阈值（要调请另造第三套）
+{"id": "h-direct-01", "question": "压力怎么理解", "folder": "emotion", "entry": "stress", "category": "holdout-paraphrase"}
+{"id": "h-direct-02", "question": "隐私与数据最小化要怎么理解", "folder": "ethics", "entry": "privacy", "category": "holdout-paraphrase"}
+{"id": "h-direct-03", "question": "极限怎么理解", "folder": "math", "entry": "limit", "category": "holdout-paraphrase"}
+{"id": "h-direct-04", "question": "能讲讲级数和收敛吗", "folder": "math", "entry": "series", "category": "holdout-paraphrase"}
+{"id": "h-direct-05", "question": "不确定性原理要怎么理解", "folder": "physics", "entry": "heisenberg", "category": "holdout-paraphrase"}
+{"id": "h-direct-06", "question": "解释一下多普勒效应", "folder": "physics", "entry": "doppler", "category": "holdout-paraphrase"}
+{"id": "h-direct-07", "question": "响应式设计怎么理解", "folder": "web_dev", "entry": "responsive", "category": "holdout-paraphrase"}
+{"id": "h-direct-08", "question": "能讲讲SEO吗", "folder": "web_dev", "entry": "seo-basics", "category": "holdout-paraphrase"}
+{"id": "h-typo-01", "question": "功 利 主 义是什么", "folder": "ethics", "entry": "utilitarianism", "category": "typo-spaced"}
+{"id": "h-typo-02", "question": "人 的 尊 严是什么", "folder": "ethics", "entry": "human-dignity", "category": "typo-spaced"}
+{"id": "h-typo-03", "question": "Ｍａｖｅｎ是什么", "folder": "java", "entry": "maven", "category": "typo-fullwidth"}
+{"id": "h-typo-04", "question": "微 积 分 基 本 定 理是什么", "folder": "math", "entry": "ftc", "category": "typo-spaced"}
+{"id": "h-typo-05", "question": "電场是什么", "folder": "physics", "entry": "electric-field", "category": "typo-traditional"}
+{"id": "h-typo-06", "question": "大 爆 炸 理 论是什么", "folder": "physics", "entry": "big-bang", "category": "typo-spaced"}
+{"id": "h-typo-07", "question": "网 页 可 访 问 性是什么", "folder": "web_dev", "entry": "a11y", "category": "typo-spaced"}
+{"id": "h-near-01", "question": "什么是卡尔曼滤波", "category": "near-miss", "must_abstain": true, "shares_vocab_with": "math", "why_abstain": "共享数学范畴，包里没有这一条"}
+{"id": "h-near-02", "question": "C 语言的指针和数组有什么区别", "category": "near-miss", "must_abstain": true, "shares_vocab_with": "java", "why_abstain": "共享编程范畴，但包里是 Java"}
+{"id": "h-near-03", "question": "虚拟内存是怎么工作的", "category": "near-miss", "must_abstain": true, "shares_vocab_with": "web_dev", "why_abstain": "共享系统范畴，包里没有这一条"}
+{"id": "h-near-04", "question": "Linux 的定时任务怎么配", "category": "near-miss", "must_abstain": true, "shares_vocab_with": "web_dev", "why_abstain": "共享运维范畴，包里没有这一条"}
+{"id": "h-near-05", "question": "什么是 CAP 定理", "category": "near-miss", "must_abstain": true, "shares_vocab_with": "web_dev", "why_abstain": "共享分布式范畴，包里没有这一条"}
+{"id": "h-near-06", "question": "消息队列怎么保证不丢消息", "category": "near-miss", "must_abstain": true, "shares_vocab_with": "web_dev", "why_abstain": "共享后端范畴，包里没有这一条"}
+{"id": "h-near-07", "question": "什么是 JWT", "category": "near-miss", "must_abstain": true, "shares_vocab_with": "web_dev", "why_abstain": "共享鉴权范畴，包里没有这一条"}
+{"id": "h-near-08", "question": "单元测试的覆盖率怎么算", "category": "near-miss", "must_abstain": true, "shares_vocab_with": "web_dev", "why_abstain": "共享测试范畴，包里没有这一条"}
+{"id": "h-near-09", "question": "什么是死锁，怎么避免", "category": "near-miss", "must_abstain": true, "shares_vocab_with": "java", "why_abstain": "共享并发范畴，包里没有这一条"}
+{"id": "h-near-10", "question": "OSI 七层模型分别是哪七层", "category": "near-miss", "must_abstain": true, "shares_vocab_with": "web_dev", "why_abstain": "共享网络范畴，包里没有这一条"}
+{"id": "h-near-11", "question": "Vue 和 React 的响应式有什么区别", "category": "near-miss", "must_abstain": true, "shares_vocab_with": "web_dev", "why_abstain": "共享前端范畴，包里没有这一条"}
+{"id": "h-near-12", "question": "哥廷根学派对数学有什么影响", "category": "near-miss", "must_abstain": true, "shares_vocab_with": "math", "why_abstain": "只共享数学范畴"}
+{"id": "h-near-13", "question": "什么是蒙特卡洛方法", "category": "near-miss", "must_abstain": true, "shares_vocab_with": "math", "why_abstain": "共享概率范畴，包里没有这一条"}
+{"id": "h-near-14", "question": "费曼图是用来算什么", "category": "near-miss", "must_abstain": true, "shares_vocab_with": "physics", "why_abstain": "共享物理范畴，包里没有这一条"}
+{"id": "h-near-15", "question": "什么是拉马努金和", "category": "near-miss", "must_abstain": true, "shares_vocab_with": "math", "why_abstain": "只共享数学范畴"}
+{"id": "h-ood-01", "question": "附近有什么好吃的", "category": "negative", "must_abstain": true}
+{"id": "h-ood-02", "question": "这个周末适合去哪里玩", "category": "negative", "must_abstain": true}
+{"id": "h-ood-03", "question": "帮我算一下房贷月供", "category": "negative", "must_abstain": true}
+{"id": "h-ood-04", "question": "怎么才能早睡", "category": "negative", "must_abstain": true}
+{"id": "h-ood-05", "question": "哪款电动车续航最长", "category": "negative", "must_abstain": true}
+{"id": "h-ood-06", "question": "明天股市会涨吗", "category": "negative", "must_abstain": true}
+{"id": "h-trap-01", "question": "这个东西到底靠谱吗", "category": "trap", "must_abstain": true, "why_abstain": "没有指代对象，无法核对"}
+{"id": "h-trap-02", "question": "为什么", "category": "trap", "must_abstain": true, "why_abstain": "没有命题，问不出可核对的东西"}
+{"id": "h-trap-03", "question": "它和上一个有什么关系", "category": "trap", "must_abstain": true, "why_abstain": "没有上文，也没有两个对象"}
+{"id": "h-trap-04", "question": "请总结一下今天发生了什么", "category": "trap", "must_abstain": true, "why_abstain": "没有今日信息，也不联网"}
+{"id": "h-trap-05", "question": "把刚才那条再念一遍", "category": "trap", "must_abstain": true, "why_abstain": "没有上文可念"}

@@ -9,7 +9,7 @@
     "context:   上下文记忆:记住上一轮拆出来的非常用词,接着问的时候再用一次。",
     "           enabled=false 可以整个关掉;max_turns / max_keywords 是记忆的有界大小。",
     "retrieval: 检索层开关:bm25(倒排 BM25)/ hybrid(混合兜底)/ query_expansion(扩展词数 0–10)",
-    "           / hierarchy(按笔记标题分层)/ abstain_confidence(校准弃权阈值 0–1)",
+    "           / hierarchy(按笔记标题分层)/ abstain_confidence(校准弃权阈值 0–1)\n           / min_coverage(证据闸门:问题里的实义词至少有多少出现在条目的 question/aliases/keywords 里,0–1,0=关闭;默认 0.30)",
     "           / max_entries(一次最多并入几条,默认 6)/ text_budget(答案正文最多字符,0=不限)。",
     "           条目可在 pack.json 里写 priority(数字大先选)/ group(同组只取一条)。",
     "trust:     条目信任与冲突优先级:author_entries_high(作者包条目默认高置信,默认 true)",
@@ -33,7 +33,8 @@
     "hierarchy": true,
     "abstain_confidence": 0.35,
     "max_entries": 6,
-    "text_budget": 2400
+    "text_budget": 2400,
+    "min_coverage": 0.4
   },
   "trust": {
     "author_entries_high": true,

@@ -31,10 +31,12 @@ from .datalog import DatalogEngine, QueryResult
 MAX_STEPS = 4
 
 #: "X 是 Y 吗 / X 可以 Y 吗 / X 需要 Y 吗"（排除"是什么"这种定义题）
+#: `是否` 必须排在 `是` 前面(或给 `是` 加否定前瞻),否则「苹果是否是水果」
+#: 会被 `是` 先吃掉,解析成 object="否是水果"。
 _MEMBERSHIP_RE = re.compile(
     r"^(?!.*(?:是什么|是啥|什么意思|什么叫|什么是|为什么|怎么|如何))"
     r"(?P<subject>.{1,24}?)"
-    r"(?P<predicate>属于|是否属于|是|是否|能不能|能|可以|会|需要)"
+    r"(?P<predicate>是否属于|是否|属于|是(?!否)|能不能|能|可以|会|需要)"
     r"(?P<object>.{1,24}?)(?:吗|么|呢)?[?？。]?$"
 )
 #: "A 和 B 是什么关系 / 有什么区别"
@@ -474,13 +476,24 @@ class BoundedPlanner:
 
 
 def _same(left: str, right: str) -> bool:
-    return bool(left) and bool(right) and (left == right or left in right or right in left)
+    """同一个实体:去掉空白/语气词之后**完全相等**。
+
+    以前是子串匹配(`left in right or right in left`):包里只有 `是(苹果派, 甜点)`,
+    问「苹果和甜点是什么关系」也能"推出"「苹果 和 甜点 满足『是』」——
+    主体还被写成提问里的"苹果",把真实主体"苹果派"抹掉了。
+    规划器的纪律是"不生成、只查包里写下的",子串匹配正好越过了这条线。
+    """
+    left = _clean(_strip_article(left))
+    right = _clean(_strip_article(right))
+    return bool(left) and bool(right) and left == right
 
 
 def _mentioned(term: str, names: set[str]) -> bool:
-    if not term:
+    """提问里的词是否**就是**某个已知主体(不再按子串算)。"""
+    needle = _clean(_strip_article(term))
+    if not needle:
         return False
-    return any(term == name or term in name or name in term for name in names if name)
+    return any(needle == _clean(_strip_article(name)) for name in names if name)
 
 
 __all__ = ["MAX_STEPS", "PlanResult", "BoundedPlanner"]

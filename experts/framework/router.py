@@ -3,7 +3,9 @@
 它不是"猜一个最像的",而是**逐条尝试 + 累计命中**:
 
   · 每条候选对每个数据包打分:领域词 +3、条目标题/别名 +4、条目关键词 +3;
-  · ASCII 候选再按编辑距离兜一层(HMTL ≈ HTML,距离 1);
+  · ASCII 候选再按编辑距离兜一层(HMTL ≈ HTML,距离按词长给预算,见 `fuzzy.py`);
+  · 中文错字由分解器的**词典纠错**先一步修好(唯一最佳才纠),
+    到了这里通常已经是"对得上的词";
   · 分数 ≥ 阈值(3)的包都算命中 —— 所以**问得广就会查多个包**;
   · 每个包最多带一个"兜底问法"(命中的条目原题),给打错字的情况用;
   · 规则**一个领域包都没命中**时,再用 TF-IDF 余弦相似度补一次
@@ -21,6 +23,7 @@ from . import budget as budget_mod
 from .calibration import Calibrator
 from .catalog import CATALOG, ExpertCard
 from .decomposer import Candidate, Decomposition, normalize
+from .fuzzy import near_in
 from .relations import PackGraph
 from .retrieval import HybridRetriever, RetrievalHit
 from .settings import RetrievalSettings
@@ -46,12 +49,27 @@ GENERIC_TERMS: frozenset[str] = frozenset({
 })
 
 _PUNCT_RE = re.compile(r"[，。！？、；:：,.!?;~～\"'“”‘’()（）\[\]【】《》<>]+")
+#: 中文之间被切开的空白:「量 子 场」->「量子场」。用户复制/手打时常夹空格,
+#: 不合并的话「向量 场」就命中不了「向量场」
+_CJK_SPACE_RE = re.compile(r"(?<=[\u4e00-\u9fff])\s+(?=[\u4e00-\u9fff])")
+#: 检索键里有没有 ASCII 字母/数字:没有就不必走 ASCII 近似(省掉绝大多数候选)
+_ASCII_CHAR_RE = re.compile(r"[a-z0-9]")
 _ASCII_RE_CACHE: dict[str, re.Pattern[str]] = {}
+
+#: 变体候选:换顺序 / 换字 / 错字母。它们只认领域词与"整条别名相同",
+#: 否则「向量场」的重排+谐音能凑出「常量」,把 java 包也拉进来(实测踩到)。
+#: 「词典纠错(correct)」不在其中:那是查过词表、唯一最像的修正,按正常词算。
+VARIANT_KINDS: tuple[str, ...] = ("perm", "homophone", "confusable", "ascii_typo")
 
 
 def _key(text: str) -> str:
     cleaned = _PUNCT_RE.sub(" ", normalize(text).lower())
     return " ".join(cleaned.split())
+
+
+def _compact(key: str) -> str:
+    """去掉中文之间的空白,供"措辞被空格切开"的情况再做一次精确匹配。"""
+    return _CJK_SPACE_RE.sub("", key)
 
 
 def _ascii_pattern(key: str) -> re.Pattern[str] | None:
@@ -73,12 +91,20 @@ class _Term:
     key: str
     pattern: re.Pattern[str] | None = None
 
-    def hit(self, key: str) -> bool:
+    def hit(self, key: str, compact: str = "") -> bool:
+        """在检索键里命中吗?
+
+        `compact` 是"去掉中文之间空白"的同一个键:用户把词写开(`量 子 场`)时
+        再试一次。**只对中文词生效** —— ASCII 词的词边界不能靠去掉空格绕过
+        (否则 `javascript` 里能读出 `java`)。
+        """
         if not self.key:
             return False
         if self.pattern is not None:
             return self.pattern.search(key) is not None
-        return self.key in key
+        if self.key in key:
+            return True
+        return bool(compact) and len(self.key) >= 2 and self.key in compact
 
 
 def _term(raw: str) -> _Term:
@@ -101,20 +127,12 @@ class _EntryIndex:
 class _CardIndex:
     scope: tuple[_Term, ...]
     entries: tuple[_EntryIndex, ...]
-    ascii_scope: tuple[tuple[str, str], ...]        # (原文, 小写)
-    ascii_keywords: tuple[tuple[str, str], ...]     # (条目 id, 小写)
 
 
 def _index_card(card: ExpertCard) -> _CardIndex:
     """每个数据包只在装配时归一化一次;一包 20+ 条目 × 多条候选不再重复算。"""
     scope = tuple(term for term in (_term(t) for t in card.scope) if term.key)
     entries: list[_EntryIndex] = []
-    ascii_scope: list[tuple[str, str]] = []
-    ascii_keywords: list[tuple[str, str]] = []
-
-    for term in scope:
-        if term.key.isascii() and len(term.key) >= 3:
-            ascii_scope.append((term.raw, term.key))
 
     for entry in card.entries:
         eid = str(entry.get("id") or "")
@@ -128,8 +146,6 @@ def _index_card(card: ExpertCard) -> _CardIndex:
             term = _term(str(keyword))
             if term.key:
                 keywords.append(term)
-            if term.key.isascii() and len(term.key) >= 3:
-                ascii_keywords.append((eid, term.key))
         secondary: list[_Term] = []
         for keyword in entry.get("secondary_keywords") or ():
             term = _term(str(keyword))
@@ -142,48 +158,7 @@ def _index_card(card: ExpertCard) -> _CardIndex:
             tags=tags,
         ))
 
-    return _CardIndex(
-        scope=scope,
-        entries=tuple(entries),
-        ascii_scope=tuple(ascii_scope),
-        ascii_keywords=tuple(ascii_keywords),
-    )
-
-
-def _damerau1(a: str, b: str) -> bool:
-    """编辑距离 ≤ 1(替换 / 插入 / 删除 / 相邻互换)。"""
-    if a == b:
-        return True
-    la, lb = len(a), len(b)
-    if abs(la - lb) > 1:
-        return False
-    if la == lb:
-        diff = [i for i in range(la) if a[i] != b[i]]
-        if len(diff) == 1:
-            return True
-        if (
-            len(diff) == 2
-            and diff[1] == diff[0] + 1
-            and a[diff[0]] == b[diff[1]]
-            and a[diff[1]] == b[diff[0]]
-        ):
-            return True
-        return False
-    if la > lb:
-        a, b = b, a
-        la, lb = lb, la
-    i = j = 0
-    skipped = False
-    while i < la and j < lb:
-        if a[i] == b[j]:
-            i += 1
-            j += 1
-        elif skipped:
-            return False
-        else:
-            skipped = True
-            j += 1
-    return True
+    return _CardIndex(scope=scope, entries=tuple(entries))
 
 
 @dataclass(frozen=True)
@@ -307,20 +282,25 @@ class Router:
 
     # ---- 单条候选打分 ----------------------------------------------------
     def _score(self, card: ExpertCard, cand: Candidate,
-               key: str | None = None) -> tuple[int, list[str], dict[str, int]]:
+               key: str | None = None,
+               compact: str | None = None) -> tuple[int, list[str], dict[str, int]]:
         """(这个包的总分, 命中理由, 每个条目的得分)。
 
         条目得分单独留下,是为了能选对"兜底问法":同一个候选可能既命中
         引力波条目的别名(4 分),又命中万有引力条目的关键词(3 分)——
         该用**分最高**的那条,而不是"先出现"的那条。
 
-        `key` 是候选归一化后的检索键:由 `_score_targets` 每条候选只算一次,
-        这样"候选 × 数据包"不会重复走同一条 normalize。
+        `key` / `compact` 是候选归一化后的检索键:由 `_score_targets` 每条候选
+        只算一次,这样"候选 × 数据包"不会重复走同一条 normalize。
         """
         key = key if key is not None else _key(cand.text)
         if not key or key in GENERIC_TERMS:
             return 0, [], {}
         index = self._index[card.folder]
+        # 「量 子 场」这种被空格切开的写法,再拼一次做精确匹配。
+        # 拼完与原来一样(绝大多数句子)就不必再比第二遍,省掉一半子串检查
+        compact = compact if compact is not None else _compact(key)
+        folded = compact if compact != key else ""
         best = 0
         reasons: list[str] = []
         entry_scores: dict[str, int] = {}
@@ -330,39 +310,53 @@ class Router:
                 entry_scores[eid] = points
 
         for term in index.scope:
-            if term.hit(key):
+            if term.hit(key, folded):
                 best = max(best, 3)
                 reasons.append(f"领域词:{term.raw}")
 
-        # 变体候选(排列/谐音/错字)只认领域词与"完全相同的条目名":
+        # 变体候选(排列/谐音/形近/错字母)只认领域词与"完全相同的条目名":
         # 否则「向量场」的重排+谐音能凑出「常量」,把 java 包也拉进来(实测踩到)。
-        variant = cand.kind in ("perm", "homophone", "ascii_typo")
+        #
+        # 但变体**可以**用关键词挑条目 —— 只记条目分,不给包加分:
+        # 「共晴」把 emotion 包接住了(领域词 共情),可包里该答哪一条要靠关键词,
+        # 不许它加分,是为了不让猜出来的词把不相干的包也拉进来。
+        variant = cand.kind in VARIANT_KINDS
+        scope_hit = best > 0            # 变体只有先靠领域词把包接住,才值得再挑条目
         for entry in index.entries:
             eid = entry.id
             if not variant:
                 for term in entry.keywords:
                     if term.key in GENERIC_TERMS:
                         continue
-                    if term.hit(key):
+                    if term.hit(key, folded):
                         best = max(best, 3)
                         reasons.append(f"关键词:{term.raw}@{eid}")
                         bump(eid, 3)
                 for term in entry.secondary_keywords:
                     if term.key in GENERIC_TERMS:
                         continue
-                    if term.hit(key):
+                    if term.hit(key, folded):
                         best = max(best, 2)
                         reasons.append(f"次要关键词:{term.raw}@{eid}")
                         bump(eid, 2)
+            elif scope_hit:
+                for term in entry.keywords:
+                    if term.key in GENERIC_TERMS:
+                        continue
+                    if term.hit(key, folded):
+                        reasons.append(f"变体挑条目:{term.raw}@{eid}")
+                        bump(eid, 3)
+                        break
             for alias_key in entry.aliases:
                 if len(alias_key) < 2:
                     continue
                 if variant:
-                    strong = alias_key == key
+                    strong = alias_key == key or alias_key == compact
                 else:
                     strong = (
                         alias_key == key
                         or alias_key in key
+                        or (not alias_key.isascii() and alias_key in compact)
                         or (len(key) >= 3 and key in alias_key and len(alias_key) - len(key) <= 3)
                     )
                 if strong:
@@ -371,19 +365,26 @@ class Router:
                     bump(eid, 4)
                     break
 
-        # ASCII 错字兜底:HMTL ≈ HTML
-        text = cand.text.strip()
-        if text.isascii() and len(text) >= 3:
-            lowered = text.lower()
-            for raw, term_key in index.ascii_scope:
-                if _damerau1(lowered, term_key):
+        # ASCII 错字兜底:HMTL ≈ HTML、javascrpit ≈ javascript。
+        # 中文错字不在这里兜 —— 那由分解器的词典纠错先修好(唯一最佳才纠),
+        # 这里再按"对一个字也算命中"处理,就等于放弃"宁可不猜"的底线。
+        if not variant and _ASCII_CHAR_RE.search(key):
+            for term in index.scope:
+                if not term.key.isascii():
+                    continue
+                near = near_in(term.key, key)
+                if near is not None and near[1] > 0:
                     best = max(best, 3)
-                    reasons.append(f"近似领域词:{raw}")
-            for eid, term_key in index.ascii_keywords:
-                if _damerau1(lowered, term_key):
-                    best = max(best, 3)
-                    reasons.append(f"近似关键词:{term_key}@{eid}")
-                    bump(eid, 3)
+                    reasons.append(f"近似领域词:{term.raw}≈{near[0]}")
+            for entry in index.entries:
+                for term in entry.keywords:
+                    if not term.key.isascii() or term.key in GENERIC_TERMS:
+                        continue
+                    near = near_in(term.key, key)
+                    if near is not None and near[1] > 0:
+                        best = max(best, 3)
+                        reasons.append(f"近似关键词:{term.raw}@{entry.id}≈{near[0]}")
+                        bump(entry.id, 3)
 
         return best, list(dict.fromkeys(reasons)), entry_scores
 
@@ -767,8 +768,11 @@ class Router:
 
         for cand in candidates:
             key = _key(cand.text)          # 每条候选只归一化一次
+            compact = _compact(key)
             for card in self.cards:
-                points, why, per_entry = self._score(card, cand, key=key)
+                points, why, per_entry = self._score(
+                    card, cand, key=key, compact=compact
+                )
                 if points <= 0:
                     continue
                 scores[card.folder] += points
@@ -877,4 +881,5 @@ __all__ = [
     "MAX_REHIT_ROUNDS",
     "MAX_REVERSE_KEYWORDS",
     "GENERIC_TERMS",
+    "VARIANT_KINDS",
 ]

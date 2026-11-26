@@ -22,7 +22,7 @@ canonical / miss / offtopic。
 
 - 先跑 `python experts/eval.py` 记下基线；
 - 改完再跑一次，指标不能明显回退；
-- 跑 `python -m unittest discover -s experts/tests -t experts`（当前 222 项）；
+- 跑 `python -m unittest discover -s experts/tests -t experts`（当前 352 项）；
 - 新增行为要有独立测试，不要只改现有断言。
 
 ## 提交信息

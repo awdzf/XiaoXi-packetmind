@@ -266,6 +266,15 @@
         "utilitarianism",
         "deontology",
         "double-effect"
+      ],
+      "not_about": [
+        "电池",
+        "充电",
+        "续航",
+        "保养",
+        "电动车",
+        "新能源车",
+        "买电车"
       ]
     },
     {

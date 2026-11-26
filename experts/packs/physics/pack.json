@@ -231,6 +231,13 @@
         "gravitational-wave",
         "light-speed",
         "black-hole"
+      ],
+      "not_about": [
+        "gps",
+        "北斗",
+        "卫星定位",
+        "导航",
+        "原子钟"
       ]
     },
     {
@@ -415,6 +422,12 @@
       "see_also": [
         "thermodynamics",
         "quantum"
+      ],
+      "not_about": [
+        "寿命",
+        "养生",
+        "保健",
+        "衰老"
       ]
     },
     {

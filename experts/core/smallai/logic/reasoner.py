@@ -592,14 +592,3 @@ def default_store() -> FactStore:
     return store
 
 
-def store_for(project_paths: Iterable[str | Path] | None = None) -> FactStore:
-    """按给定路径找 kb.json;找不到就用默认库。
-
-    路径按顺序试,第一个存在的胜出 —— 于是可以做到
-    "项目内 kb.json 覆盖默认库,而默认库始终可用"。
-    """
-    for raw in project_paths or ():
-        path = Path(raw)
-        if path.exists():
-            return FactStore.load(path)
-    return default_store()

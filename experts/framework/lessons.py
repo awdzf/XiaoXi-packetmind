@@ -193,7 +193,9 @@ def next_id(entries: list[dict[str, Any]], counter: int = 0) -> str:
 def build_entry(knowledge: str, keywords: tuple[str, ...] | list[str],
                 entry_id: str, raw: str | None = None,
                 secondary_keywords: tuple[str, ...] | list[str] = (),
-                answer: str | None = None) -> dict[str, Any]:
+                answer: str | None = None,
+                extra: dict[str, Any] | None = None,
+                aliases: tuple[str, ...] | list[str] = ()) -> dict[str, Any]:
     """一条要写进记忆数据包的条目:题面与答案可以分开,关键词当检索键。
 
     旧调用 `build_entry(知识, ...)` 仍然把知识同时当题面和答案；
@@ -206,6 +208,7 @@ def build_entry(knowledge: str, keywords: tuple[str, ...] | list[str],
     if not answer_text:
         answer_text = question
     keys = [k for k in dict.fromkeys(str(k).strip() for k in keywords) if k]
+    alias_list = [a for a in dict.fromkeys(str(a).strip() for a in aliases) if a]
     secondary = [
         k for k in dict.fromkeys(str(k).strip() for k in secondary_keywords)
         if k and k not in keys
@@ -220,7 +223,7 @@ def build_entry(knowledge: str, keywords: tuple[str, ...] | list[str],
         "id": entry_id,
         "question": question,
         "raw": raw_line,
-        "aliases": [],
+        "aliases": alias_list,
         "keywords": keys,
         "secondary_keywords": secondary,
         "tags": [TAUGHT_TAG],
@@ -230,6 +233,10 @@ def build_entry(knowledge: str, keywords: tuple[str, ...] | list[str],
     }
     if answer_text != question:
         entry["qa"] = True
+    if extra:
+        # 结构化字段（例如用户教的公式：name/expr/vars）。
+        # 单开一个键，不塞进 answer 文本里 —— 检索层读文本，求值层读字段，互不将就。
+        entry.update(extra)
     return entry
 
 
@@ -289,7 +296,9 @@ def teach(card: ExpertCard, knowledge: str,
           keywords: tuple[str, ...] | list[str] = (),
           raw: str | None = None,
           secondary: tuple[str, ...] | list[str] = (),
-          answer: str | None = None) -> tuple[dict[str, Any], bool]:
+          answer: str | None = None,
+          extra: dict[str, Any] | None = None,
+          aliases: tuple[str, ...] | list[str] = ()) -> tuple[dict[str, Any], bool]:
     """写进记忆数据包。返回 (条目, 是否新建)。
 
     同一道题再教一次：**更新答案、关键词与次要关键词**，不重复追加
@@ -338,6 +347,14 @@ def teach(card: ExpertCard, knowledge: str,
             existing["tags"] = tags
         if TAUGHT_TAG not in tags:
             tags.append(TAUGHT_TAG)
+        if aliases:
+            merged = list(existing.get("aliases") or [])
+            for alias in aliases:
+                if alias and alias not in merged:
+                    merged.append(alias)
+            existing["aliases"] = merged
+        if extra:
+            existing.update(extra)      # 再教一次同一条公式：算式/变量一起更新
         _touch_counter(data, entries)
         _write(path, data)
         return existing, False
@@ -345,7 +362,8 @@ def teach(card: ExpertCard, knowledge: str,
     counter = int(data.get("_next_user_id") or 0)
     entry = build_entry(
         question, keywords, next_id(entries, counter), raw=raw,
-        secondary_keywords=secondary, answer=answer_text,
+        secondary_keywords=secondary, answer=answer_text, extra=extra,
+        aliases=aliases,
     )
     entries.append(entry)
     _touch_counter(data, entries)

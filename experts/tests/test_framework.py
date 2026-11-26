@@ -26,6 +26,7 @@ from framework import (  # noqa: E402
     settings,
 )
 from framework.catalog import card_for  # noqa: E402
+from framework.catalog import ExpertCard  # noqa: E402
 from framework.decomposer import Decomposition  # noqa: E402
 from framework.router import RouteTarget, Routing  # noqa: E402
 from framework.summarizer import summarize  # noqa: E402
@@ -64,6 +65,52 @@ class TestDecomposer(unittest.TestCase):
         self.assertLessEqual(len(dec.candidates), 240)
         self.assertTrue(dec.notes)
 
+    # ---- 归一化(输入写法差异) --------------------------------------------
+    def test_fullwidth_letters_are_normalized(self) -> None:
+        dec = self.decomposer.decompose("ＨＴＭＬ是什么?")
+        self.assertEqual(dec.tokens, ("HTML", "是", "什么"))
+
+    def test_traditional_characters_are_folded(self) -> None:
+        dec = self.decomposer.decompose("電車難題是什麼")
+        self.assertEqual(dec.tokens, ("电车难题", "是", "什么"))
+
+    def test_invisible_characters_are_stripped(self) -> None:
+        # 零宽空格夹在词中间:肉眼看不见,但不剥掉就匹配不上
+        dec = self.decomposer.decompose("引\u200b力波是什么?")
+        self.assertEqual(dec.tokens, ("引力波", "是", "什么"))
+
+    # ---- 切词:双向最长匹配 ------------------------------------------------
+    def test_bidirectional_segmentation_prefers_fewer_stray_characters(self) -> None:
+        card = ExpertCard(
+            folder="demo", pack_id="demo", name="演示", tagline="",
+            scope=("研究", "研究生", "生命"),
+            entries=(),
+            pack_path=Path(ROOT / "tests" / "fixtures" / "demo" / "pack.json"),
+            role="domain",
+        )
+        # 从左往右贪最长会切出「研究生 + 命」;从右往左是「研究 + 生命」
+        dec = Decomposer((card,)).decompose("研究生命")
+        self.assertEqual(dec.tokens, ("研究", "生命"))
+
+    # ---- 候选:形近 / 词典纠错 --------------------------------------------
+    def test_confusable_variant_found(self) -> None:
+        dec = self.decomposer.decompose("己经是什么?")
+        values = {c.text: c.kind for c in dec.candidates}
+        self.assertEqual(values.get("已经"), "confusable")
+
+    def test_dictionary_correction_is_reported(self) -> None:
+        dec = self.decomposer.decompose("电车南题是什么?")
+        values = {c.text: c.kind for c in dec.candidates}
+        self.assertEqual(values.get("电车难题"), "correct")
+        self.assertTrue(any("词典纠错:电车南题 → 电车难题" in note for note in dec.notes))
+
+    def test_correction_can_join_adjacent_tokens(self) -> None:
+        # 「引力 / 博」两段各自都不是错字,拼起来才是「引力波」写错了
+        dec = self.decomposer.decompose("引力博是什么?")
+        values = {c.text: c.kind for c in dec.candidates}
+        self.assertEqual(values.get("引力波"), "correct")
+        self.assertTrue(any("引力博 → 引力波" in note for note in dec.notes))
+
 
 class TestRouter(unittest.TestCase):
     @classmethod
@@ -96,6 +143,26 @@ class TestRouter(unittest.TestCase):
 
     def test_generic_words_do_not_route(self) -> None:
         self.assertEqual(self.folders("关系和区别是什么?"), [])
+
+    # ---- 写法差异也该被认出来 --------------------------------------------
+    def test_traditional_input_routes(self) -> None:
+        self.assertEqual(self.folders("電車難題是什麼"), ["ethics"])
+
+    def test_phrase_split_by_spaces_routes(self) -> None:
+        self.assertEqual(self.folders("向 量 场 是 什 么"), ["math"])
+
+    def test_ascii_double_letter_typo_routes(self) -> None:
+        self.assertEqual(self.folders("jvmm是什么?"), ["java"])
+
+    def test_typo_still_picks_the_right_entry(self) -> None:
+        # 变体候选可以挑条目,但不给包加分(见 Router._score 的注释)
+        routing = self.router.route(self.decomposer.decompose("共晴是什么?"))
+        self.assertTrue(routing.targets)
+        self.assertEqual(routing.targets[0].card.folder, "emotion")
+        self.assertIn("empathy", routing.targets[0].entry_ids)
+
+    def test_window_correction_routes(self) -> None:
+        self.assertEqual(self.folders("电车南题是什么?"), ["ethics"])
 
 
 class TestSummarizer(unittest.TestCase):
@@ -144,6 +211,15 @@ class TestSummarizer(unittest.TestCase):
         self.assertIn("[回答]", summary)
         self.assertIn("[凭据] 数据包 math:vector-field", summary)
         self.assertIn("[分解]", summary)
+
+    def test_trace_summary_shows_dictionary_correction(self) -> None:
+        # 纠错是唯一"改过用户原话"的地方,必须在内部账里露出来
+        text = "电车南题是什么?"
+        routing = Routing(targets=(self.target,), tried=1, notes="测试")
+        summary = summarize(
+            text, self._decomposition(text), routing, [], {"level": "ok"}, trace=True,
+        )
+        self.assertIn("[纠错] 词典纠错:电车南题 → 电车难题", summary)
 
     def test_multi_pack_summary_lists_both_and_marks_as_quotes(self) -> None:
         physics = card_for("physics")
@@ -1028,7 +1104,15 @@ class TestRehit(unittest.TestCase):
         self.assertTrue(any(t.via == "reverse" for t in routing.targets))
 
     def test_two_rounds_reach_grandparent(self) -> None:
-        _decomposition, routing = self._chat(rounds=2).route("苹果是什么?")
+        # 这里量的是**路由器**的再命中（parent / grandparent），不是管线最后拿谁作答；
+        # 所以直接调 `router.route`，不经过证据闸门（`chat.route` 是"会拿来作答的包"，
+        # 它会把没证据的包摘掉）。
+        chat = self._chat(rounds=2)
+        routing = chat.router.route(
+            chat.decomposer.decompose("苹果是什么?"),
+            max_targets=chat.max_packs,
+            rehit_rounds=chat.rehit_rounds,
+        )
         folders = [t.card.folder for t in routing.targets]
         self.assertIn("food", folders)
         self.assertIn(("apple", "food"), routing.rehits)

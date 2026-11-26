@@ -1,4 +1,6 @@
-# 小析检索评测集：一行一条；direct = 原题，paraphrase = 换个问法，negative = 应弃权
+# 小析检索评测集：一行一条；direct = 原题，paraphrase = 换个问法，
+# typo = 错字/写法差异（同音、形近、繁简、全角、英文错字母、词中空格），
+# negative = 应弃权
 {"id":"direct-vector-field","question":"向量场是什么?","folder":"math","entry":"vector-field","category":"direct"}
 {"id":"direct-vector","question":"向量是什么?","folder":"math","entry":"vector","category":"direct"}
 {"id":"direct-derivative","question":"导数是什么?","folder":"math","entry":"derivative","category":"direct"}
@@ -20,8 +22,61 @@
 {"id":"para-html","question":"HTML 是干嘛的","folder":"web_dev","entry":"html-what","category":"paraphrase"}
 {"id":"para-jvm","question":"Java 的虚拟机是什么","folder":"java","entry":"jvm","category":"paraphrase"}
 {"id":"para-empathy","question":"共情是哪几块","folder":"emotion","entry":"empathy","category":"paraphrase"}
+{"id":"typo-homophone","question":"引立波是什么?","folder":"physics","entry":"gravitational-wave","category":"typo"}
+{"id":"typo-homophone-entry","question":"共晴是什么?","folder":"emotion","entry":"empathy","category":"typo"}
+{"id":"typo-permutation","question":"量向场是什么?","folder":"math","entry":"vector-field","category":"typo"}
+{"id":"typo-shape","question":"向亮场是什么?","folder":"math","entry":"vector-field","category":"typo"}
+{"id":"typo-window-correction","question":"电车南题是什么?","folder":"ethics","entry":"trolley","category":"typo"}
+{"id":"typo-window-correction-2","question":"引力博是什么?","folder":"physics","entry":"gravity","category":"typo"}
+{"id":"typo-traditional","question":"電車難題是什麼","folder":"ethics","entry":"trolley","category":"typo"}
+{"id":"typo-fullwidth","question":"ＨＴＭＬ是什么?","folder":"web_dev","entry":"html-what","category":"typo"}
+{"id":"typo-ascii-swap","question":"htlm是什么?","folder":"web_dev","entry":"html-what","category":"typo"}
+{"id":"typo-ascii-double","question":"jvmm是什么?","folder":"java","entry":"jvm","category":"typo"}
+{"id":"typo-ascii-long","question":"javascrpit是什么?","folder":"web_dev","entry":"js-what","category":"typo"}
+{"id":"typo-spaced","question":"向 量 场 是 什 么","folder":"math","entry":"vector-field","category":"typo"}
 {"id":"neg-cat","question":"怎么给猫剪指甲","must_abstain":true,"category":"negative"}
 {"id":"neg-tomato","question":"番茄炒蛋要放多少盐","must_abstain":true,"category":"negative"}
 {"id":"neg-weather","question":"今天天气怎么样","must_abstain":true,"category":"negative"}
 {"id":"neg-company","question":"我们公司的灰度发布规则是什么","must_abstain":true,"category":"negative"}
 {"id":"neg-stock","question":"请推荐一只股票","must_abstain":true,"category":"negative"}
+{"id":"neg-english","question":"怎么学英语","must_abstain":true,"category":"negative"}
+{"id":"neg-novel","question":"推荐一本小说","must_abstain":true,"category":"negative"}
+{"id":"neg-rain","question":"明天会下雨吗","must_abstain":true,"category":"negative"}
+{"id": "near-01", "question": "什么是德摩根定律", "category": "near-miss", "must_abstain": true, "shares_vocab_with": "physics", "why_abstain": "只共享「定律」；包里是热力学定律"}
+{"id": "near-02", "question": "C++ 的虚函数表怎么实现", "category": "near-miss", "must_abstain": true, "shares_vocab_with": "math", "why_abstain": "「虚函数」里含「函数」；包里是数学函数"}
+{"id": "near-03", "question": "哥德尔不完备定理说的是什么", "category": "near-miss", "must_abstain": true, "shares_vocab_with": "math", "why_abstain": "只共享「定理」"}
+{"id": "near-04", "question": "费马大定理怎么证明", "category": "near-miss", "must_abstain": true, "shares_vocab_with": "math", "why_abstain": "只共享「定理」"}
+{"id": "near-05", "question": "黎曼猜想到底是什么", "category": "near-miss", "must_abstain": true, "shares_vocab_with": "math", "why_abstain": "只共享数学范畴，包里无此条目"}
+{"id": "near-06", "question": "薛定谔的猫是什么", "category": "near-miss", "must_abstain": true, "shares_vocab_with": "physics", "why_abstain": "只共享物理范畴，包里无此条目"}
+{"id": "near-07", "question": "熵增和热寂是什么关系", "category": "near-miss", "must_abstain": true, "shares_vocab_with": "physics", "why_abstain": "共享「熵」但与包里条目不对应"}
+{"id": "near-08", "question": "什么是对称矩阵", "category": "near-miss", "must_abstain": true, "shares_vocab_with": "math", "why_abstain": "共享「矩阵」但包里没有这一条"}
+{"id": "near-09", "question": "什么是黎曼积分", "category": "near-miss", "must_abstain": true, "shares_vocab_with": "math", "why_abstain": "共享「积分」但包里没有这一条"}
+{"id": "near-10", "question": "泰勒展开怎么推", "category": "near-miss", "must_abstain": true, "shares_vocab_with": "math", "why_abstain": "共享「展开」但包里没有这一条"}
+{"id": "near-11", "question": "什么是哥德巴赫猜想", "category": "near-miss", "must_abstain": true, "shares_vocab_with": "math", "why_abstain": "只共享数学词"}
+{"id": "near-12", "question": "Docker 容器和虚拟机的区别", "category": "near-miss", "must_abstain": true, "shares_vocab_with": "java", "why_abstain": "共享「虚拟机」；包里是 JVM"}
+{"id": "near-13", "question": "Kubernetes 怎么部署服务", "category": "near-miss", "must_abstain": true, "shares_vocab_with": "web_dev", "why_abstain": "共享「部署」；包里是部署流程"}
+{"id": "near-14", "question": "TCP 三次握手为什么不能是两次", "category": "near-miss", "must_abstain": true, "shares_vocab_with": "web_dev", "why_abstain": "只共享网络范畴"}
+{"id": "near-15", "question": "HTTP 状态码 302 是什么意思", "category": "near-miss", "must_abstain": true, "shares_vocab_with": "web_dev", "why_abstain": "只共享 HTTP 范畴，包里无此条目"}
+{"id": "near-16", "question": "git rebase 和 merge 有什么区别", "category": "near-miss", "must_abstain": true, "shares_vocab_with": "web_dev", "why_abstain": "只共享版本控制范畴"}
+{"id": "near-17", "question": "什么是闭包", "category": "near-miss", "must_abstain": true, "shares_vocab_with": "java", "why_abstain": "只共享语言概念"}
+{"id": "near-18", "question": "什么是 transformer 的注意力机制", "category": "near-miss", "must_abstain": true, "shares_vocab_with": "web_dev", "why_abstain": "只共享技术范畴"}
+{"id": "near-19", "question": "反向传播是怎么推导出来的", "category": "near-miss", "must_abstain": true, "shares_vocab_with": "math", "why_abstain": "共享数学范畴，包里无此条目"}
+{"id": "near-20", "question": "强化学习的奖励函数怎么设计", "category": "near-miss", "must_abstain": true, "shares_vocab_with": "math", "why_abstain": "共享数学范畴，包里无此条目"}
+{"id": "near-21", "question": "梯度消失是什么原因造成的", "category": "near-miss", "must_abstain": true, "shares_vocab_with": "math", "why_abstain": "共享「梯度」相关词，包里无此条目"}
+{"id": "near-22", "question": "多巴胺和血清素有什么区别", "category": "near-miss", "must_abstain": true, "shares_vocab_with": "emotion", "why_abstain": "共享「情绪」范畴，包里无此条目"}
+{"id": "near-23", "question": "怎么和难相处的同事沟通", "category": "near-miss", "must_abstain": true, "shares_vocab_with": "emotion", "why_abstain": "共享人际范畴，包里无此条目"}
+{"id": "near-24", "question": "基因编辑婴儿在伦理上该不该允许", "category": "near-miss", "must_abstain": true, "shares_vocab_with": "ethics", "why_abstain": "共享伦理范畴，包里无此条目"}
+{"id": "near-25", "question": "什么是罗尔斯的正义论", "category": "near-miss", "must_abstain": true, "shares_vocab_with": "ethics", "why_abstain": "只共享伦理范畴"}
+{"id": "near-26", "question": "Python 的装饰器怎么写", "category": "near-miss", "must_abstain": true, "shares_vocab_with": "java", "why_abstain": "共享编程范畴，但包里是 Java"}
+{"id": "near-27", "question": "React 的 useEffect 依赖数组怎么用", "category": "near-miss", "must_abstain": true, "shares_vocab_with": "web_dev", "why_abstain": "共享前端范畴，包里无此条目"}
+{"id": "near-28", "question": "如何用 SQL 做窗口函数", "category": "near-miss", "must_abstain": true, "shares_vocab_with": "web_dev", "why_abstain": "共享数据范畴，包里无此条目"}
+{"id": "ood-29", "question": "明天上海会下雨吗", "category": "negative", "must_abstain": true, "why_abstain": "整句越界"}
+{"id": "ood-30", "question": "帮我订一张去北京的机票", "category": "negative", "must_abstain": true, "why_abstain": "整句越界"}
+{"id": "ood-31", "question": "茅台股价现在多少", "category": "negative", "must_abstain": true, "why_abstain": "整句越界"}
+{"id": "ood-32", "question": "红烧肉要炖多久", "category": "negative", "must_abstain": true, "why_abstain": "整句越界"}
+{"id": "ood-33", "question": "世界杯冠军是谁", "category": "negative", "must_abstain": true, "why_abstain": "整句越界"}
+{"id": "ood-34", "question": "猫咪为什么怕水", "category": "negative", "must_abstain": true, "why_abstain": "整句越界"}
+{"id": "ood-35", "question": "房贷利率是多少", "category": "negative", "must_abstain": true, "why_abstain": "整句越界"}
+{"id": "ood-36", "question": "口罩怎么正确佩戴", "category": "negative", "must_abstain": true, "why_abstain": "整句越界"}
+{"id": "ood-37", "question": "推荐一本好看的小说", "category": "negative", "must_abstain": true, "why_abstain": "整句越界"}
+{"id": "ood-38", "question": "怎么申请护照", "category": "negative", "must_abstain": true, "why_abstain": "整句越界"}
